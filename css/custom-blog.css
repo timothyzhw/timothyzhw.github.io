@@ -391,23 +391,29 @@ pre code {
   left: 0;
   width: 100%;
   z-index: 30;
-  /* Hux learn from
-     *     TypeIsBeautiful,
-     *     [This Post](http://zhuanlan.zhihu.com/ibuick/20186806) etc.
-     */
   font-family: -apple-system, "Helvetica Neue", "Arial", "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "Microsoft JhengHei", "Source Han Sans SC", "Noto Sans CJK SC", "Source Han Sans CN", "Noto Sans SC", "Source Han Sans TC", "Noto Sans CJK TC", "WenQuanYi Micro Hei", SimSun, sans-serif;
   line-height: 1.5;
   background: rgba(37,39,44,.90);
+     min-height: 40px;
+    height: 40px;
 }
 .navbar-custom .navbar-brand {
   font-weight: 800;
   color: white;
   height: 56px;
   line-height: 25px;
+  padding: 10px;
 }
 .navbar-custom .navbar-brand:hover {
   color: rgba(255, 255, 255, 0.8);
 }
+.navbar-custom .navbar-brand img {
+	 display:inline-block;
+	 margin-top:-5px;
+     height:30px;
+	 width:30px;
+}
+  
 .navbar-custom .nav li a {
   text-transform: uppercase;
   font-size: 12px;
@@ -431,6 +437,7 @@ pre code {
     padding: 10px 20px;
     line-height: 20px;
   }
+ 
   .navbar-custom .navbar-brand:hover,
   .navbar-custom .navbar-brand:focus {
     color: rgba(255, 255, 255, 0.8);
@@ -531,7 +538,7 @@ pre code {
 }
 @media only screen and (min-width: 768px) {
   .intro-header .site-heading {
-    padding: 100px 0;
+    padding: 150px 0;
   }
 }
 .intro-header .site-heading,
@@ -1006,10 +1013,10 @@ img::-moz-selection {
 .navbar-default .navbar-toggle:active {
   background-color: rgba(255, 255, 255, 0.25);
 }
-/* Hux customize Style for navBar button */
+
 .navbar-default .navbar-toggle {
   border-color: transparent;
-  padding: 19px 16px;
+  padding: 10px 15px;
   margin-top: 2px;
   margin-right: 2px;
   margin-bottom: 2px;

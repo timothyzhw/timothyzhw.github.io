@@ -1,10 +1,10 @@
 # Site settings
-title: Tim 新的博客
+title: Tim 杂七杂八
 brand: TimBlog
 SEOTitle: 华惟的博客 | Tim Blog
 header-img: img/headbanner.jpg
 email: timothyzhong@126.com
-description: 我不去想是否能够成功，<br/>既然选择了远方，便只顾风雨兼程……
+description: "华惟的博客 来自github 装B+烧包"
 keyword: "仲华惟 途家 研发经理 .net 运维 部署 powershell"
 url: "http://timothyzhw.github.io"              # your host, for absolute URL
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
