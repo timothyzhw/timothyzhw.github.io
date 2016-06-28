@@ -9,14 +9,14 @@ layout: default
             <div class="col-lg-8 col-lg-offset-1 col-md-10 col-md-offset-1 ">
                 <div class="site-heading">
                     <h1>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</h1>
-                    <span class="subheading">{{ site.description }}</span>
+                    <span class="subheading">{{ page.description }}</span>
                 </div>
             </div>
         </div>
     </div>
 	<div class="head-background">	
 		<div class="imgwrap">				        
-			<img   title="Tim" src="{{site.header-img}}" alt="Timblog">
+			<img   title="Tim" src="{% if page.back-img %}{{ page.back-img }}{% else %}{{ site.back-img }}{% endif %}" alt="Timblog">
 			</div>       
 	</div>
 </header>
