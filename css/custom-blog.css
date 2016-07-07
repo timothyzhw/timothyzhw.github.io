@@ -38,7 +38,7 @@
 .sidebar-container .short-about img {
   width: 80%;
   display: block;
-  border-radius: 5px;
+  border-radius: 50%;
   margin-bottom: 20px;
 }
 .sidebar-container .short-about p {
@@ -426,7 +426,7 @@ pre code {
 }
 @media only screen and (min-width: 768px) {
   .navbar-custom {
-    background: rgba(37,39,44,.90);;
+    background: rgba(37,39,44,.90);
     border-bottom: 1px solid transparent;
   }
   .navbar-custom body {
@@ -454,7 +454,7 @@ pre code {
     background: none;
   }
 }
-@media only screen and (min-width: 1170px) {
+@media only screen and (min-width: 1000px) {
   .navbar-custom {
     -webkit-transition: background-color 0.3s;
     -moz-transition: background-color 0.3s;
@@ -469,16 +469,13 @@ pre code {
     backface-visibility: hidden;
   }
   .navbar-custom.is-fixed {
-    /* when the user scrolls down, we hide the header right above the viewport */
     position: fixed;
-    top: -61px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-bottom: 1px solid #f2f2f2;
+    top: -40px;
     -webkit-transition: -webkit-transform 0.3s;
     -moz-transition: -moz-transform 0.3s;
     transition: transform 0.3s;
   }
-  .navbar-custom.is-fixed .navbar-brand {
+ /* .navbar-custom.is-fixed .navbar-brand {
     color: #404040;
   }
   .navbar-custom.is-fixed .navbar-brand:hover,
@@ -491,7 +488,7 @@ pre code {
   .navbar-custom.is-fixed .nav li a:hover,
   .navbar-custom.is-fixed .nav li a:focus {
     color: #0085a1;
-  }
+  }*/
   .navbar-custom.is-visible {
     /* if the user changes the scrolling direction, we show the header */
     -webkit-transform: translate3d(0, 100%, 0);
