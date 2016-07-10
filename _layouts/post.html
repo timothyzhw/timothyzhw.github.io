@@ -58,9 +58,9 @@ layout: default
                 col-md-10 col-md-offset-1
                 post-container">
 
+                <div id="post_content">
 				{{ content }}
- 
-
+                </div>
 
                 <ul class="pager">
                     {% if page.previous.url %}
@@ -219,7 +219,7 @@ layout: default
           placement: 'right',
           icon: '#'
         };
-        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5').remove('.hll h1');
     })
 </script>
 <style>
