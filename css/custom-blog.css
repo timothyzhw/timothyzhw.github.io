@@ -53,14 +53,14 @@
 }
 .side-catalog {
   display: block;
-  overflow: auto;
+  overflow: hidden;
   height: 100%;
   padding-bottom: 40px;
   width: 195px;
 }
 .side-catalog.fixed {
   position: fixed;
-  top: -21px;
+  top: -10px;
 }
 .side-catalog.fold .catalog-toggle::before {
   content: "+";
@@ -413,7 +413,7 @@ pre code {
      height:30px;
 	 width:30px;
 }
-  
+
 .navbar-custom .nav li a {
   text-transform: uppercase;
   font-size: 12px;
@@ -437,7 +437,7 @@ pre code {
     padding: 10px 20px;
     line-height: 20px;
   }
- 
+
   .navbar-custom .navbar-brand:hover,
   .navbar-custom .navbar-brand:focus {
     color: rgba(255, 255, 255, 0.8);
@@ -527,7 +527,7 @@ pre code {
   .intro-header .site-heading,
   .intro-header .post-heading,
   .intro-header .page-heading {
-    padding: 150px 0;
+    padding: 85px 0;
   }
 }
 .intro-header .site-heading {
@@ -535,7 +535,7 @@ pre code {
 }
 @media only screen and (min-width: 768px) {
   .intro-header .site-heading {
-    padding: 150px 0;
+    padding: 145px 0;
   }
 }
 .intro-header .site-heading,

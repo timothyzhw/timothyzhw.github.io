@@ -26,7 +26,7 @@ layout: default
     <div class="header-mask"></div>
     <div class="container">
         <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="col-lg-10 col-lg-offset-1 col-md-10 ">
                 <div class="post-heading">
                     <div class="tags">
                         {% for tag in page.tags %}
@@ -54,8 +54,8 @@ layout: default
 
     <!-- Post Container -->
             <div class="
-                col-lg-8 col-lg-offset-2
-                col-md-10 col-md-offset-1
+                col-lg-10
+                col-md-11
                 post-container">
 
                 <div id="post_content">
@@ -102,7 +102,7 @@ layout: default
                 <!-- disqus 评论框 end -->
                 {% endif %}
 
-            </div>  
+            </div>
 
     <!-- Side Catalog Container -->
         {% if page.catalog %}
@@ -213,13 +213,14 @@ layout: default
 </script>
 <!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
 <script>
-    async("//cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+    async("//cdn.bootcss.com/anchor-js/1.1.1/anchor.js",function(){
         anchors.options = {
           visible: 'always',
           placement: 'right',
           icon: '#'
         };
-        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5').remove('.hll h1');
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5')
+        .remove('.ignore-cat h1,.ignore-cat h2,.ignore-cat h3,.ignore-cat h4,.ignore-cat h5,.ignore-cat h6');
     })
 </script>
 <style>
