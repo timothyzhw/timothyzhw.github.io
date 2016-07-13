@@ -7,7 +7,7 @@ author:     "Tim"
 header-img: "img/post/bg-window.jpg"
 catalog: true
 tags:
-    -
+    - jekyll
     - markdown
 ---
 > MARKDOWN 示例 from Mou
