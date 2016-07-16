@@ -16,27 +16,125 @@
 			}
 		},
 		{
+			"file": "about.html",
+			"settings":
+			{
+				"buffer_size": 117,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "index.html",
+			"settings":
+			{
+				"buffer_size": 1207,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "_layouts/page.html",
+			"settings":
+			{
+				"buffer_size": 8975,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "<!-- Footer -->\n<footer>\n    <div class=\"container\">\n        <div class=\"row\">\n            <div class=\"col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1\">\n                <ul class=\"list-inline text-center\">\n                    {% if site.RSS %}\n                    <li>\n                        <a href=\"{{ \"/feed.xml\" | prepend: site.baseurl }}\">\n                            <span class=\"fa-stack fa-lg\">\n                                <i class=\"fa fa-circle fa-stack-2x\"></i>\n                                <i class=\"fa fa-rss fa-stack-1x fa-inverse\"></i>\n                            </span>\n                        </a>\n                    </li>\n                    {% endif %}\n                    {% if site.twitter_username %}\n                    <li>\n                        <a href=\"https://twitter.com/{{ site.twitter_username }}\">\n                            <span class=\"fa-stack fa-lg\">\n                                <i class=\"fa fa-circle fa-stack-2x\"></i>\n                                <i class=\"fa fa-twitter fa-stack-1x fa-inverse\"></i>\n                            </span>\n                        </a>\n                    </li>\n                    {% endif %}\n\n                    <!-- add Weibo, Zhihu by Hux, add target = \"_blank\" to <a> by Hux -->\n                    {% if site.zhihu_username %}\n                    <li>\n                        <a target=\"_blank\" href=\"https://www.zhihu.com/people/{{ site.zhihu_username }}\">\n                            <span class=\"fa-stack fa-lg\">\n                                <i class=\"fa fa-circle fa-stack-2x\"></i>\n                                <i class=\"fa  fa-stack-1x fa-inverse\">知</i>\n                            </span>\n                        </a>\n                    </li>\n                    {% endif %}\n                    {% if site.weibo_username %}\n                    <li>\n                        <a target=\"_blank\" href=\"http://weibo.com/{{ site.weibo_username }}\">\n                            <span class=\"fa-stack fa-lg\">\n                                <i class=\"fa fa-circle fa-stack-2x\"></i>\n                                <i class=\"fa fa-weibo fa-stack-1x fa-inverse\"></i>\n                            </span>\n                        </a>\n                    </li>\n                    {% endif %}\n\n\n                    {% if site.github_username %}\n                    <li>\n                        <a target=\"_blank\" href=\"https://github.com/{{ site.github_username }}\">\n                            <span class=\"fa-stack fa-lg\">\n                                <i class=\"fa fa-circle fa-stack-2x\"></i>\n                                <i class=\"fa fa-github fa-stack-1x fa-inverse\"></i>\n                            </span>\n                        </a>\n                    </li>\n                    {% endif %}\n                    {% if site.linkedin_username %}\n                    <li>\n                        <a target=\"_blank\" href=\"https://www.linkedin.com/in/{{ site.linkedin_username }}\">\n                            <span class=\"fa-stack fa-lg\">\n                                <i class=\"fa fa-circle fa-stack-2x\"></i>\n                                <i class=\"fa fa-linkedin fa-stack-1x fa-inverse\"></i>\n                            </span>\n                        </a>\n                    </li>\n                    {% endif %}\n                </ul>\n                <p class=\"copyright text-muted\">\n                    Copyright &copy; {{ site.title }} {{ site.time | date: '%Y' }}\n                    <br>\n                    Theme by Tim  |\n                    <iframe\n                        style=\"margin-left: 2px; margin-bottom:-5px;\"\n                        frameborder=\"0\" scrolling=\"0\" width=\"91px\" height=\"20px\"\n                        src=\"https://ghbtns.com/github-btn.html?user=timothyzhw&repo=timothyzhw.github.io&type=star&count=true\" >\n                    </iframe>\n                </p>\n            </div>\n        </div>\n    </div>\n</footer>\n\n\n<!-- async load function -->\n<script>\n    function async(u, c) {\n      var d = document, t = 'script',\n          o = d.createElement(t),\n          s = d.getElementsByTagName(t)[0];\n      o.src = u;\n      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }\n      s.parentNode.insertBefore(o, s);\n    }\n</script>\n\n<!-- \n     Because of the native support for backtick-style fenced code blocks \n     right within the Markdown is landed in Github Pages, \n     From V1.6, There is no need for Highlight.js, \n     so Huxblog drops it officially.\n\n     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  \n     - https://help.github.com/articles/creating-and-highlighting-code-blocks/ \n     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers   \n-->\n<!--\n    <script>\n        async(\"http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js\", function(){\n            hljs.initHighlightingOnLoad();\n        })\n    </script>\n    <link href=\"http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css\" rel=\"stylesheet\">\n-->\n\n\n<!-- jquery.tagcloud.js -->\n<script>\n    // only load tagcloud.js in tag.html\n    if($('#tag_cloud').length !== 0){\n        async('{{ \"/js/jquery.tagcloud.js\" | prepend: site.baseurl }}',function(){\n            $.fn.tagcloud.defaults = {\n                //size: {start: 1, end: 1, unit: 'em'},\n                color: {start: '#bbbbee', end: '#0085a1'},\n            };\n            $('#tag_cloud a').tagcloud();\n        })\n    }\n</script>\n\n<!--fastClick.js -->\n<script>\n    async(\"//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js\", function(){\n        var $nav = document.querySelector(\"nav\");\n        if($nav) FastClick.attach($nav);\n    })\n</script>\n\n\n<!-- Baidu Tongji -->\n{% if site.ba_track_id %}\n<script>\n    var _hmt = _hmt || [];\n    (function() {\n      var hm = document.createElement(\"script\");\n      hm.src = \"//hm.baidu.com/hm.js?{{ site.ba_track_id }}\";\n      var s = document.getElementsByTagName(\"script\")[0];\n      s.parentNode.insertBefore(hm, s);\n    })();\n</script>\n{% endif %}\n\n\n\n<!-- Side Catalog -->\n{% if page.catalog %}\n<script type=\"text/javascript\">\n    function generateCatalog (selector) {\n        var P = $('div.post-container'),a,n,t,l,i,c;\n        a = P.find('h1,h2,h3,h4,h5,h6');\n        a.each(function () {\n            n = $(this).prop('tagName').toLowerCase();\n            i = \"#\"+$(this).prop('id');\n            t = $(this).text();\n            c = $('<a href=\"'+i+'\" rel=\"nofollow\">'+t+'</a>');\n            l = $('<li class=\"'+n+'_nav\"></li>').append(c);\n            $(selector).append(l);\n        });\n        return true;    \n    }\n\n    generateCatalog(\".catalog-body\");\n\n    // toggle side catalog\n    $(\".catalog-toggle\").click((function(e){\n        e.preventDefault();\n        $('.side-catalog').toggleClass(\"fold\")\n    }))\n\n    /*\n     * Doc: https://github.com/davist11/jQuery-One-Page-Nav\n     * Fork by Hux to support padding\n     */\n    async(\"{{ '/js/jquery.nav.js' | prepend: site.baseurl }}\", function () {\n        $('.catalog-body').onePageNav({\n            currentClass: \"active\",\n            changeHash: !1,\n            easing: \"swing\",\n            filter: \"\",\n            scrollSpeed: 700,\n            scrollOffset: 0,\n            scrollThreshold: .2,\n            begin: null,\n            end: null,\n            scrollChange: null,\n            padding: 80\n        });\n    });\n</script>\n{% endif %}\n\n",
+			"file": "_includes/footer.html",
+			"file_size": 7808,
+			"file_write_time": 131128074590000000,
+			"settings":
+			{
+				"buffer_size": 7407,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "_includes/head.html",
+			"settings":
+			{
+				"buffer_size": 2526,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": " \n# Mou\n\n![Mou icon](http://25.io/mou/Mou_128.png)\n\n## Overview\n\n**Mou**, the missing Markdown editor for *web developers*.\n\n### Syntax\n\n#### Strong and Emphasize \n\n**strong** or __strong__ ( Cmd + B )\n\n*emphasize* or _emphasize_ ( Cmd + I )\n\n**Sometimes I want a lot of text to be bold.\nLike, seriously, a _LOT_ of text**\n\n#### Blockquotes\n\n> Right angle brackets &gt; are used for block quotes.\n\n#### Links and Email\n\nAn email <example@example.com> link.\n\nSimple inline link <http://chenluois.com>, another inline link [Smaller](http://25.io/smaller/), one more inline link with title [Resize](http://resizesafari.com \"a Safari extension\").\n\nA [reference style][id] link. Input id, then anywhere in the doc, define the link with corresponding id:\n\n[id]: http://25.io/mou/ \"Markdown editor on Mac OS X\"\n\nTitles ( or called tool tips ) in the links are optional.\n\n#### Images\n\nAn inline image ![Smaller icon](http://25.io/smaller/favicon.ico \"Title here\"), title is optional.\n\nA ![Resize icon][2] reference style image.\n\n[2]: http://resizesafari.com/favicon.ico \"Title\"\n\n#### Inline code and Block code\n\nInline code are surround by `backtick` key. To create a block code:\n\n	Indent each line by at least 1 tab, or 4 spaces.\n    var Mou = exactlyTheAppIwant; \n\n####  Ordered Lists\n\nOrdered lists are created using \"1.\" + Space:\n\n1. Ordered list item\n2. Ordered list item\n3. Ordered list item\n\n#### Unordered Lists\n\nUnordered list are created using \"*\" + Space:\n\n* Unordered list item\n* Unordered list item\n* Unordered list item \n\nOr using \"-\" + Space:\n\n- Unordered list item\n- Unordered list item\n- Unordered list item\n\n#### Hard Linebreak\n\nEnd a line with two or more spaces will create a hard linebreak, called `<br />` in HTML. ( Control + Return )  \nAbove line ended with 2 spaces.\n\n#### Horizontal Rules\n\nThree or more asterisks or dashes:\n\n***\n\n---\n\n- - - -\n\n#### Headers\n\nSetext-style:\n\nThis is H1\n==========\n\nThis is H2\n----------\n\natx-style:\n\n# This is H1\n## This is H2\n### This is H3\n#### This is H4\n##### This is H5\n###### This is H6\n\n\n### Extra Syntax\n\n#### Footnotes\n\nFootnotes work mostly like reference-style links. A footnote is made of two things: a marker in the text that will become a superscript number; a footnote definition that will be placed in a list of footnotes at the end of the document. A footnote looks like this:\n\nThat's some text with a footnote.[^1]\n\n[^1]: And that's the footnote.\n\n\n#### Strikethrough\n\nWrap with 2 tilde characters:\n\n~~Strikethrough~~\n\n\n#### Fenced Code Blocks\n\nStart with a line containing 3 or more backticks, and ends with the first line with the same number of backticks:\n\n```\nFenced code blocks are like Stardard Markdown’s regular code\nblocks, except that they’re not indented and instead rely on\na start and end fence lines to delimit the code block.\n```\n\n#### Tables\n\nA simple table looks like this:\n\nFirst Header | Second Header | Third Header\n------------ | ------------- | ------------\nContent Cell | Content Cell  | Content Cell\nContent Cell | Content Cell  | Content Cell\n\nIf you wish, you can add a leading and tailing pipe to each line of the table:\n\n| First Header | Second Header | Third Header |\n| ------------ | ------------- | ------------ |\n| Content Cell | Content Cell  | Content Cell |\n| Content Cell | Content Cell  | Content Cell |\n\nSpecify alignment for each column by adding colons to separator lines:\n\nFirst Header | Second Header | Third Header\n:----------- | :-----------: | -----------:\nLeft         | Center        | Right\nLeft         | Center        | Right\n\n\n### Shortcuts\n\n#### View\n\n* Toggle live preview: Shift + Cmd + I\n* Toggle Words Counter: Shift + Cmd + W\n* Toggle Transparent: Shift + Cmd + T\n* Toggle Floating: Shift + Cmd + F\n* Left/Right = 1/1: Cmd + 0\n* Left/Right = 3/1: Cmd + +\n* Left/Right = 1/3: Cmd + -\n* Toggle Writing orientation: Cmd + L\n* Toggle fullscreen: Control + Cmd + F\n\n#### Actions\n\n* Copy HTML: Option + Cmd + C\n* Strong: Select text, Cmd + B\n* Emphasize: Select text, Cmd + I\n* Inline Code: Select text, Cmd + K\n* Strikethrough: Select text, Cmd + U\n* Link: Select text, Control + Shift + L\n* Image: Select text, Control + Shift + I\n* Select Word: Control + Option + W\n* Select Line: Shift + Cmd + L\n* Select All: Cmd + A\n* Deselect All: Cmd + D\n* Convert to Uppercase: Select text, Control + U\n* Convert to Lowercase: Select text, Control + Shift + U\n* Convert to Titlecase: Select text, Control + Option + U\n* Convert to List: Select lines, Control + L\n* Convert to Blockquote: Select lines, Control + Q\n* Convert to H1: Cmd + 1\n* Convert to H2: Cmd + 2\n* Convert to H3: Cmd + 3\n* Convert to H4: Cmd + 4\n* Convert to H5: Cmd + 5\n* Convert to H6: Cmd + 6\n* Convert Spaces to Tabs: Control + [\n* Convert Tabs to Spaces: Control + ]\n* Insert Current Date: Control + Shift + 1\n* Insert Current Time: Control + Shift + 2\n* Insert entity <: Control + Shift + ,\n* Insert entity >: Control + Shift + .\n* Insert entity &: Control + Shift + 7\n* Insert entity Space: Control + Shift + Space\n* Insert Scriptogr.am Header: Control + Shift + G\n* Shift Line Left: Select lines, Cmd + [\n* Shift Line Right: Select lines, Cmd + ]\n* New Line: Cmd + Return\n* Comment: Cmd + /\n* Hard Linebreak: Control + Return\n\n#### Edit\n\n* Auto complete current word: Esc\n* Find: Cmd + F\n* Close find bar: Esc\n\n#### Post\n\n* Post on Scriptogr.am: Control + Shift + S\n* Post on Tumblr: Control + Shift + T\n\n#### Export\n\n* Export HTML: Option + Cmd + E\n* Export PDF:  Option + Cmd + P\n\n\n### And more?\n\nDon't forget to check Preferences, lots of useful options are there.\n\nFollow [@Mou](https://twitter.com/mou) on Twitter for the latest news.\n\nFor feedback, use the menu `Help` - `Send Feedback`\n\n ",
+			"settings":
+			{
+				"buffer_size": 5682,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "---\nlayout:     post\ntitle:      \"Hey，2016的夏天\"\nsubtitle:   \" \\\"Hello World, Hello Blog\\\"\"\ndate:       2016-07-07\nauthor:     \"Tim\"\nheader-img: \"img/post-bg-2015.jpg\"\ncatalog: true\ntags:\n    - 生活\n    - jekyll\n---\n\n> hi，开始新的博客\n\n--用GitHub搭建博客\n\n## 前言\n\n最近想写总结一下工作，将[博客园](http://timothyzhong.cnblogs.com)的主页翻了出来，想弄个新的界面。但是博客园的元素都固定了，样式修改起来太麻烦。去请教前端的同学一个css的写法，被鄙视了『现在都用github』写博客，你太out啦。\nOUT，这个不行啊，赶紧的吧，又折腾了一个星期，终于是有了点眉目。\n\n\n## GitHub\n\nGithub的[Pages](https://pages.github.com/)可以生成一些静态页面，推销自己和项目。\n\n首先，要注册一个Github的帐号，如 githubblog 接下来按照示例：\n\n* 新建一个repository，名字必须是刚注册的帐号.github.io，也就是 githubblog.github.io\n* 在本地clone新建的库\n* 在本地库新建index.html文件，随便写点内容\n* commit & sync 到github\n\nOK，博客开版啦，访问http://githubblog.github.io,就可以看到刚才index.html的内容。\n\n## Jekyll\n\n-哈，没有样式，没有内容，怎么写啊？ -Jekyll来了\n\nJekyll可以将Github库中的文件，编译成静态的页面。也就是将githubblog.github.io中的文件，编译后放到_site文件夹中，\n访问http://githubblog.github.io，实际访问的是编译好的_site的内容。\n\n当然，搭建一个站点，肯定不想从『0』开始啦。OK，先去[JekyllThemes](http://jekyllthemes.org/)找个自己觉得好看的主题，把代码clone代码到本地。 然后拷贝到你自己的库，sync一下，好看的模板就成你的了。\n\n那想要自己改改样式，改改布局，你只要在相应的文件里修改，提交到github就能生效。\n\n如果想在本地先预览一下修改的结果，就需要在本地装一个jekyll，简单的过程如下，每一步都可以baidu到：\n\n* 安装 Ruby\n* 安装 Gem （安装ruby包的工具）\n* 修改 Gem 源为国内的源，taobao的gem源已经停了，现在可以用这个代替 [https://gems.ruby-china.org/](https://gems.ruby-china.org/)\n* 使用gem 安装 jekyll : \n   **gem install jekyll**\n* 如果最新的mac os，gem install会出现目录不能写的错误，是mac os的系统保护搞的鬼，直接到恢复模式下关掉 Rootless 内核保护。\n\n安装好jekyll，通过命令行或终端，cd 到你库的目录，运行命令\n\n{% highlight shell %}\n   jekyll serve --watch \n{% endhighlight %}\n\njekyll会编译你的文件，并启动一个本地web服务，在浏览器里输入地址 localhost:4000，便可以预览你的博客啦。\n\n--watch 会监视你文件的修改，实时编译。可能windows没有这个功能，mac下是可以的。\n\n如果提示jekyll命令不对，那要配置一下path，把jekyll的路径加到path里。\n\n## MARKDOWN\n\n架子打好了，关键还在后头，如何填充内容。\n\n内容要放在库的 _posts 文件夹里，按照规则 年-月-日-标题.md 命名，每一篇文章，一个文件。\n\n文件里，就可以用Markdown来写博客了。当然，如果不想用markdown，直接写html，也是完全没有问题的。\n\nMarkdown还没有搞清楚怎么用，以后一边写一边学吧。\n\n## 高级\n\n接下来，要使博客更酷一点，还要继续完善:\n\n* 买个域名，解析到github.io\n* 配置个评论插件，方便和别人交互\n* ……\n\n慢慢来吧，希望能有点干货可以分享！\n \n\n",
+			"file": "_posts/2016-07-07-Hey-2016的夏天.md",
+			"file_size": 3590,
+			"file_write_time": 131125540230000000,
+			"settings":
+			{
+				"buffer_size": 1914,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "---\nlayout:     post\ntitle:      \"MARKDOWN的教程\"\nsubtitle:   \"简单够用就好\"\ndate:       2016-07-10\nauthor:     \"Tim\"\nheader-img: \"img/post-bg-2015.jpg\"\ncatalog: true\ntags:\n    - 生活\n    - markdown\n---\n> hi开始了\n\n<link rel=\"stylesheet\" href=\"//cdn.bootcss.com/highlight.js/9.4.0/styles/github.min.css\" >\n<script src=\"//cdn.bootcss.com/highlight.js/9.5.0/highlight.min.js\"></script>\n<style>\n.anchorjs-link{display:none !important;}\n#div_org pre{height:600px;overflow-y:auto;}\n#div_pre .hll{height:600px;overflow-y:auto;}\n#div_org,#div_pre {padding-left:0;padding-right:0;}\n</style>\n<script type=\"text/javascript\">\n	hljs.initHighlightingOnLoad();\n	$(function(){\n		var s1 = $(\"#div_org>pre:first\")[0];\n		var s2 = $(\"#div_pre .hll:first\")[0];\n		$(s1).scroll(function(){\n\n			 s2.scrollTop = s1.scrollTop / s1.scrollHeight * s2.scrollHeight;\n		});\n	});\n</script>\n<div class='row'>\n<div id='div_org' class=\"col-md-6 col-xs-12\" >\n<pre><code class=\"markdown\">\n# Mou\n\n![Mou icon](http://25.io/mou/Mou_128.png)\n\n## Overview\n\n**Mou**, the missing Markdown editor for *web developers*.\n\n### Syntax\n\n#### Strong and Emphasize \n\n**strong** or __strong__  \n\n*emphasize* or _emphasize_  \n\n**Sometimes I want a lot of text to be bold.\nLike, seriously, a _LOT_ of text**\n\n#### Blockquotes\n\n> Right angle brackets &gt; are used for block quotes.\n\n#### Links and Email\n\nAn email <example@example.com> link.\n\nSimple inline link <http://chenluois.com>, another inline link [Smaller](http://25.io/smaller/), one more inline link with title [Resize](http://resizesafari.com \"a Safari extension\").\n\nA [reference style][id] link. Input id, then anywhere in the doc, define the link with corresponding id:\n\n[id]: http://25.io/mou/ \"Markdown editor on Mac OS X\"\n\nTitles ( or called tool tips ) in the links are optional.\n\n#### Images\n\nAn inline image ![Smaller icon](http://25.io/smaller/favicon.ico \"Title here\"), title is optional.\n\nA ![Resize icon][2] reference style image.\n\n[2]: http://resizesafari.com/favicon.ico \"Title\"\n\n#### Inline code and Block code\n\nInline code are surround by `backtick` key. To create a block code:\n\n	Indent each line by at least 1 tab, or 4 spaces.\n    var Mou = exactlyTheAppIwant; \n\n####  Ordered Lists\n\nOrdered lists are created using \"1.\" + Space:\n\n1. Ordered list item\n2. Ordered list item\n3. Ordered list item\n\n#### Unordered Lists\n\nUnordered list are created using \"*\" + Space:\n\n* Unordered list item\n* Unordered list item\n* Unordered list item \n\nOr using \"-\" + Space:\n\n- Unordered list item\n- Unordered list item\n- Unordered list item\n\n#### Hard Linebreak\n\nEnd a line with two or more spaces will create a hard linebreak, called `<br />` in HTML. ( Control + Return )  \nAbove line ended with 2 spaces.\n\n#### Horizontal Rules\n\nThree or more asterisks or dashes:\n\n***\n\n---\n\n- - - -\n\n#### Headers\n\nSetext-style:\n\nThis is H1\n==========\n\nThis is H2\n----------\n\natx-style:\n\n# This is H1\n## This is H2\n### This is H3\n#### This is H4\n##### This is H5\n###### This is H6\n\n\n### Extra Syntax\n\n#### Footnotes\n\nFootnotes work mostly like reference-style links. A footnote is made of two things: a marker in the text that will become a superscript number; a footnote definition that will be placed in a list of footnotes at the end of the document. A footnote looks like this:\n\nThat's some text with a footnote.[^1]\n\n[^1]: And that's the footnote.\n\n\n#### Strikethrough\n\nWrap with 2 tilde characters:\n\n~~Strikethrough~~\n\n\n#### Fenced Code Blocks\n\nStart with a line containing 3 or more backticks, and ends with the first line with the same number of backticks:\n\n```\nFenced code blocks are like Stardard Markdown’s regular code\nblocks, except that they’re not indented and instead rely on\na start and end fence lines to delimit the code block.\n```\n\n#### Tables\n\nA simple table looks like this:\n\nFirst Header | Second Header | Third Header\n------------ | ------------- | ------------\nContent Cell | Content Cell  | Content Cell\nContent Cell | Content Cell  | Content Cell\n\nIf you wish, you can add a leading and tailing pipe to each line of the table:\n\n| First Header | Second Header | Third Header |\n| ------------ | ------------- | ------------ |\n| Content Cell | Content Cell  | Content Cell |\n| Content Cell | Content Cell  | Content Cell |\n\nSpecify alignment for each column by adding colons to separator lines:\n\nFirst Header | Second Header | Third Header\n:----------- | :-----------: | -----------:\nLeft         | Center        | Right\nLeft         | Center        | Right\n\n\n### And more?\n\nDon't forget to check Preferences, lots of useful options are there.\n\nFollow [@Mou](https://twitter.com/mou) on Twitter for the latest news.\n\nFor feedback, use the menu `Help` - `Send Feedback`\n \n</code></pre>\n\n</div>\n\n<div id='div_pre'  class=\"col-md-6 col-xs-12 highlight\">\n<div class=\"hll\" >\n	<div class=\"hljs\">\n\n <h1 id=\"mou\">Mou</h1>\n\n<p><img src=\"http://25.io/mou/Mou_128.png\" alt=\"Mou icon\" /></p>\n\n<h2 id=\"overview\">Overview</h2>\n\n<p><strong>Mou</strong>, the missing Markdown editor for <em>web developers</em>.</p>\n\n<h3 id=\"syntax\">Syntax</h3>\n\n<h4 id=\"strong-and-emphasize\">Strong and Emphasize</h4>\n\n<p><strong>strong</strong> or <strong>strong</strong></p>\n\n<p><em>emphasize</em> or <em>emphasize</em></p>\n\n<p><strong>Sometimes I want a lot of text to be bold.\nLike, seriously, a <em>LOT</em> of text</strong></p>\n\n<h4 id=\"blockquotes\">Blockquotes</h4>\n\n<blockquote>\n  <p>Right angle brackets &gt; are used for block quotes.</p>\n</blockquote>\n\n<h4 id=\"links-and-email\">Links and Email</h4>\n\n<p>An email <a href=\"&#109;&#097;&#105;&#108;&#116;&#111;:&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#064;&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#046;&#099;&#111;&#109;\">&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#064;&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#046;&#099;&#111;&#109;</a> link.</p>\n\n<p>Simple inline link <a href=\"http://chenluois.com\">http://chenluois.com</a>, another inline link <a href=\"http://25.io/smaller/\">Smaller</a>, one more inline link with title <a href=\"http://resizesafari.com\" title=\"a Safari extension\">Resize</a>.</p>\n\n<p>A <a href=\"http://25.io/mou/\" title=\"Markdown editor on Mac OS X\">reference style</a> link. Input id, then anywhere in the doc, define the link with corresponding id:</p>\n\n<p>Titles ( or called tool tips ) in the links are optional.</p>\n\n<h4 id=\"images\">Images</h4>\n\n<p>An inline image <img src=\"http://25.io/smaller/favicon.ico\" alt=\"Smaller icon\" title=\"Title here\" />, title is optional.</p>\n\n<p>A <img src=\"http://resizesafari.com/favicon.ico\" alt=\"Resize icon\" title=\"Title\" /> reference style image.</p>\n\n<h4 id=\"inline-code-and-block-code\">Inline code and Block code</h4>\n\n<p>Inline code are surround by <code class=\"highlighter-rouge\">backtick</code> key. To create a block code:</p>\n\n<div class=\"highlighter-rouge\"><pre class=\"highlight\"><code>Indent each line by at least 1 tab, or 4 spaces.\nvar Mou = exactlyTheAppIwant; \n</code></pre>\n</div>\n\n<h4 id=\"ordered-lists\">Ordered Lists</h4>\n\n<p>Ordered lists are created using “1.” + Space:</p>\n\n<ol>\n  <li>Ordered list item</li>\n  <li>Ordered list item</li>\n  <li>Ordered list item</li>\n</ol>\n\n<h4 id=\"unordered-lists\">Unordered Lists</h4>\n\n<p>Unordered list are created using “*” + Space:</p>\n\n<ul>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n</ul>\n\n<p>Or using “-“ + Space:</p>\n\n<ul>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n</ul>\n\n<h4 id=\"hard-linebreak\">Hard Linebreak</h4>\n\n<p>End a line with two or more spaces will create a hard linebreak, called <code class=\"highlighter-rouge\">&lt;br /&gt;</code> in HTML. ( Control + Return )<br />\nAbove line ended with 2 spaces.</p>\n\n<h4 id=\"horizontal-rules\">Horizontal Rules</h4>\n\n<p>Three or more asterisks or dashes:</p>\n\n<hr />\n\n<hr />\n\n<hr />\n\n<h4 id=\"headers\">Headers</h4>\n\n<p>Setext-style:</p>\n\n<h1 id=\"this-is-h1\">This is H1</h1>\n\n<h2 id=\"this-is-h2\">This is H2</h2>\n\n<p>atx-style:</p>\n\n<h1 id=\"this-is-h1-1\">This is H1</h1>\n<p>## This is H2\n### This is H3\n#### This is H4\n##### This is H5\n###### This is H6</p>\n\n<h3 id=\"extra-syntax\">Extra Syntax</h3>\n\n<h4 id=\"footnotes\">Footnotes</h4>\n\n<p>Footnotes work mostly like reference-style links. A footnote is made of two things: a marker in the text that will become a superscript number; a footnote definition that will be placed in a list of footnotes at the end of the document. A footnote looks like this:</p>\n\n<p>That’s some text with a footnote.<sup id=\"fnref:1\"><a href=\"#fn:1\" class=\"footnote\">1</a></sup></p>\n\n<h4 id=\"strikethrough\">Strikethrough</h4>\n\n<p>Wrap with 2 tilde characters:</p>\n\n<p><del>Strikethrough</del></p>\n\n<h4 id=\"fenced-code-blocks\">Fenced Code Blocks</h4>\n\n<p>Start with a line containing 3 or more backticks, and ends with the first line with the same number of backticks:</p>\n\n<div class=\"highlighter-rouge\"><pre class=\"highlight\"><code>Fenced code blocks are like Stardard Markdown’s regular code\nblocks, except that they’re not indented and instead rely on\na start and end fence lines to delimit the code block.\n</code></pre>\n</div>\n\n<h4 id=\"tables\">Tables</h4>\n\n<p>A simple table looks like this:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>First Header</th>\n      <th>Second Header</th>\n      <th>Third Header</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>If you wish, you can add a leading and tailing pipe to each line of the table:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>First Header</th>\n      <th>Second Header</th>\n      <th>Third Header</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Specify alignment for each column by adding colons to separator lines:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th style=\"text-align: left\">First Header</th>\n      <th style=\"text-align: center\">Second Header</th>\n      <th style=\"text-align: right\">Third Header</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td style=\"text-align: left\">Left</td>\n      <td style=\"text-align: center\">Center</td>\n      <td style=\"text-align: right\">Right</td>\n    </tr>\n    <tr>\n      <td style=\"text-align: left\">Left</td>\n      <td style=\"text-align: center\">Center</td>\n      <td style=\"text-align: right\">Right</td>\n    </tr>\n  </tbody>\n</table>\n\n<h3 id=\"and-more\">And more?</h3>\n\n<p>Don’t forget to check Preferences, lots of useful options are there.</p>\n\n<p>Follow <a href=\"https://twitter.com/mou\">@Mou</a> on Twitter for the latest news.</p>\n\n<p>For feedback, use the menu <code class=\"highlighter-rouge\">Help</code> - <code class=\"highlighter-rouge\">Send Feedback</code></p>\n<div class=\"footnotes\">\n  <ol>\n    <li id=\"fn:1\">\n      <p>And that’s the footnote. <a href=\"#fnref:1\" class=\"reversefootnote\">&#8617;</a></p>\n    </li>\n  </ol>\n</div>\n\n</div>\n</div>\n\n</div> \n</div>\n",
+			"file": "_posts/2016-07-11-Markdown简明教程.md",
+			"file_size": 11193,
+			"file_write_time": 131126390270000000,
+			"settings":
+			{
+				"buffer_size": 11139,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "<p># Mou</p>\n\n<p><img src=\"http://25.io/mou/Mou_128.png\" alt=\"Mou icon\" /></p>\n\n<h2 id=\"overview\">Overview</h2>\n\n<p><strong>Mou</strong>, the missing Markdown editor for <em>web developers</em>.</p>\n\n<h3 id=\"syntax\">Syntax</h3>\n\n<h4 id=\"strong-and-emphasize\">Strong and Emphasize</h4>\n\n<p><strong>strong</strong> or <strong>strong</strong> ( Cmd + B )</p>\n\n<p><em>emphasize</em> or <em>emphasize</em> ( Cmd + I )</p>\n\n<p><strong>Sometimes I want a lot of text to be bold.\nLike, seriously, a <em>LOT</em> of text</strong></p>\n\n<h4 id=\"blockquotes\">Blockquotes</h4>\n\n<blockquote>\n  <p>Right angle brackets &gt; are used for block quotes.</p>\n</blockquote>\n\n<h4 id=\"links-and-email\">Links and Email</h4>\n\n<p>An email <a href=\"&#109;&#097;&#105;&#108;&#116;&#111;:&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#064;&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#046;&#099;&#111;&#109;\">&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#064;&#101;&#120;&#097;&#109;&#112;&#108;&#101;&#046;&#099;&#111;&#109;</a> link.</p>\n\n<p>Simple inline link <a href=\"http://chenluois.com\">http://chenluois.com</a>, another inline link <a href=\"http://25.io/smaller/\">Smaller</a>, one more inline link with title <a href=\"http://resizesafari.com\" title=\"a Safari extension\">Resize</a>.</p>\n\n<p>A <a href=\"http://25.io/mou/\" title=\"Markdown editor on Mac OS X\">reference style</a> link. Input id, then anywhere in the doc, define the link with corresponding id:</p>\n\n<p>Titles ( or called tool tips ) in the links are optional.</p>\n\n<h4 id=\"images\">Images</h4>\n\n<p>An inline image <img src=\"http://25.io/smaller/favicon.ico\" alt=\"Smaller icon\" title=\"Title here\" />, title is optional.</p>\n\n<p>A <img src=\"http://resizesafari.com/favicon.ico\" alt=\"Resize icon\" title=\"Title\" /> reference style image.</p>\n\n<h4 id=\"inline-code-and-block-code\">Inline code and Block code</h4>\n\n<p>Inline code are surround by <code class=\"highlighter-rouge\">backtick</code> key. To create a block code:</p>\n\n<div class=\"highlighter-rouge\"><pre class=\"highlight\"><code>Indent each line by at least 1 tab, or 4 spaces.\nvar Mou = exactlyTheAppIwant; \n</code></pre>\n</div>\n\n<h4 id=\"ordered-lists\">Ordered Lists</h4>\n\n<p>Ordered lists are created using “1.” + Space:</p>\n\n<ol>\n  <li>Ordered list item</li>\n  <li>Ordered list item</li>\n  <li>Ordered list item</li>\n</ol>\n\n<h4 id=\"unordered-lists\">Unordered Lists</h4>\n\n<p>Unordered list are created using “*” + Space:</p>\n\n<ul>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n</ul>\n\n<p>Or using “-“ + Space:</p>\n\n<ul>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n  <li>Unordered list item</li>\n</ul>\n\n<h4 id=\"hard-linebreak\">Hard Linebreak</h4>\n\n<p>End a line with two or more spaces will create a hard linebreak, called <code class=\"highlighter-rouge\">&lt;br /&gt;</code> in HTML. ( Control + Return )<br />\nAbove line ended with 2 spaces.</p>\n\n<h4 id=\"horizontal-rules\">Horizontal Rules</h4>\n\n<p>Three or more asterisks or dashes:</p>\n\n<hr />\n\n<hr />\n\n<hr />\n\n<h4 id=\"headers\">Headers</h4>\n\n<p>Setext-style:</p>\n\n<h1 id=\"this-is-h1\">This is H1</h1>\n\n<h2 id=\"this-is-h2\">This is H2</h2>\n\n<p>atx-style:</p>\n\n<h1 id=\"this-is-h1-1\">This is H1</h1>\n<p>## This is H2\n### This is H3\n#### This is H4\n##### This is H5\n###### This is H6</p>\n\n<h3 id=\"extra-syntax\">Extra Syntax</h3>\n\n<h4 id=\"footnotes\">Footnotes</h4>\n\n<p>Footnotes work mostly like reference-style links. A footnote is made of two things: a marker in the text that will become a superscript number; a footnote definition that will be placed in a list of footnotes at the end of the document. A footnote looks like this:</p>\n\n<p>That’s some text with a footnote.<sup id=\"fnref:1\"><a href=\"#fn:1\" class=\"footnote\">1</a></sup></p>\n\n<h4 id=\"strikethrough\">Strikethrough</h4>\n\n<p>Wrap with 2 tilde characters:</p>\n\n<p><del>Strikethrough</del></p>\n\n<h4 id=\"fenced-code-blocks\">Fenced Code Blocks</h4>\n\n<p>Start with a line containing 3 or more backticks, and ends with the first line with the same number of backticks:</p>\n\n<div class=\"highlighter-rouge\"><pre class=\"highlight\"><code>Fenced code blocks are like Stardard Markdown’s regular code\nblocks, except that they’re not indented and instead rely on\na start and end fence lines to delimit the code block.\n</code></pre>\n</div>\n\n<h4 id=\"tables\">Tables</h4>\n\n<p>A simple table looks like this:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>First Header</th>\n      <th>Second Header</th>\n      <th>Third Header</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>If you wish, you can add a leading and tailing pipe to each line of the table:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>First Header</th>\n      <th>Second Header</th>\n      <th>Third Header</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n    <tr>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n      <td>Content Cell</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Specify alignment for each column by adding colons to separator lines:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th style=\"text-align: left\">First Header</th>\n      <th style=\"text-align: center\">Second Header</th>\n      <th style=\"text-align: right\">Third Header</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td style=\"text-align: left\">Left</td>\n      <td style=\"text-align: center\">Center</td>\n      <td style=\"text-align: right\">Right</td>\n    </tr>\n    <tr>\n      <td style=\"text-align: left\">Left</td>\n      <td style=\"text-align: center\">Center</td>\n      <td style=\"text-align: right\">Right</td>\n    </tr>\n  </tbody>\n</table>\n\n<h3 id=\"and-more\">And more?</h3>\n\n<p>Don’t forget to check Preferences, lots of useful options are there.</p>\n\n<p>Follow <a href=\"https://twitter.com/mou\">@Mou</a> on Twitter for the latest news.</p>\n\n<p>For feedback, use the menu <code class=\"highlighter-rouge\">Help</code> - <code class=\"highlighter-rouge\">Send Feedback</code></p>\n<div class=\"footnotes\">\n  <ol>\n    <li id=\"fn:1\">\n      <p>And that’s the footnote. <a href=\"#fnref:1\" class=\"reversefootnote\">&#8617;</a></p>\n    </li>\n  </ol>\n</div>",
+			"settings":
+			{
+				"buffer_size": 6327,
+				"line_ending": "Unix",
+				"name": "<p># Mou</p>"
+			}
+		},
+		{
 			"file": "_config.yml",
 			"settings":
 			{
-				"buffer_size": 2589,
-				"line_ending": "Windows"
+				"buffer_size": 2595,
+				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "_posts/2016-07-07-hey-2016-Summer.md",
+			"file": "_layouts/post.html",
 			"settings":
 			{
-				"buffer_size": 1910,
-				"line_ending": "Windows"
+				"buffer_size": 8251,
+				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "_posts/2016-07-11-markdown-trial.md",
+			"file": "css/syntax.css",
 			"settings":
 			{
-				"buffer_size": 11110,
-				"line_ending": "Windows"
+				"buffer_size": 3147,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "css/custom-blog.css",
+			"settings":
+			{
+				"buffer_size": 25953,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "_layouts/default.html",
+			"settings":
+			{
+				"buffer_size": 323,
+				"line_ending": "Unix"
 			}
 		}
 	],
@@ -47,7 +145,7 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 392.0,
+		"height": 87.0,
 		"last_filter": "Package Control: inst",
 		"selected_items":
 		[
@@ -64,7 +162,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 392.0
+		"width": 485.0
 	},
 	"console":
 	{
@@ -86,18 +184,27 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Users/tim/Documents/GitHub/timothyzhw.github.io",
-		"/C/Users/tim/Documents/GitHub/timothyzhw.github.io/_layouts",
-		"/C/Users/tim/Documents/GitHub/timothyzhw.github.io/_posts"
+		"/Users/tim/timothyzhw.github.io",
+		"/Users/tim/timothyzhw.github.io/_includes",
+		"/Users/tim/timothyzhw.github.io/_layouts",
+		"/Users/tim/timothyzhw.github.io/_posts",
+		"/Users/tim/timothyzhw.github.io/css",
+		"/Users/tim/timothyzhw.github.io/js"
 	],
 	"file_history":
 	[
-		"/C/Users/tim/Documents/GitHub/timothyzhw.github.io/_posts/2014-01-29-hello-2015.markdown",
+		"/Users/tim/timothyzhw.github.io/_posts/2016-07-11-Markdown简明教程.md",
+		"/Users/tim/timothyzhw.github.io/_layouts/post.html",
+		"/Users/tim/timothyzhw.github.io/_config.yml",
+		"/Users/tim/timothyzhw.github.io/_posts/2016-07-07-Hey-2016的夏天.md",
+		"/Users/tim/timothyzhw.github.io/_includes/nav.html",
+		"/Users/tim/timothyzhw.github.io/_includes/head.html",
+		"/Users/tim/timothyzhw.github.io/_layouts/default.html",
+		"/Users/tim/timothyzhw.github.io/css/custom-blog.css",
 		"/Users/tim/timothyzhw.github.io/_posts/2014-01-29-hello-2015.markdown",
 		"/Users/tim/timothyzhw.github.io/404.html",
 		"/Users/tim/timothyzhw.github.io/.gitignore",
 		"/Users/tim/timothyzhw.github.io/blog.sublime-project",
-		"/Users/tim/timothyzhw.github.io/css/custom-blog.css",
 		"/Users/tim/Downloads/PagerTest/Pager.ascx.cs",
 		"/Users/tim/Documents/myPython/ec1.py",
 		"/Applications/XAMPP/xamppfiles/htdocs/shop/themes/default/coupon/store_apply.dwt",
@@ -109,7 +216,7 @@
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 35.0
 	},
 	"find_in_files":
 	{
@@ -123,6 +230,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"icon_wechat.png",
+			"avatar-hux.jpg",
 			".navbar-custom.is-visible"
 		],
 		"highlight": true,
@@ -141,7 +250,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 13,
 			"sheets":
 			[
 				{
@@ -157,8 +266,8 @@
 						"selection":
 						[
 							[
-								1193,
-								1193
+								435,
+								435
 							]
 						],
 						"settings":
@@ -171,29 +280,29 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 14,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "_config.yml",
+					"file": "about.html",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2589,
+						"buffer_size": 117,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								748,
-								753
+								116,
+								116
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/YAML/YAML.sublime-syntax",
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -201,44 +310,16 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 13,
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "_posts/2016-07-07-hey-2016-Summer.md",
+					"file": "index.html",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1910,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1432,
-								1432
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Markdown/Markdown.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "_posts/2016-07-11-markdown-trial.md",
-					"semi_transient": true,
-					"settings":
-					{
-						"buffer_size": 11110,
+						"buffer_size": 1207,
 						"regions":
 						{
 						},
@@ -251,7 +332,331 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/Markdown/Markdown.sublime-syntax",
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "_layouts/page.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8975,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1568,
+								1568
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "_includes/footer.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7407,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3955,
+								3955
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1471.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "_includes/head.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2526,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2517,
+								2181
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 422.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5682,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								5682
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 3662.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "_posts/2016-07-07-Hey-2016的夏天.md",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1914,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								211,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/MarkdownHighlighting/Markdown.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "_posts/2016-07-11-Markdown简明教程.md",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 11139,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								787,
+								787
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/MarkdownHighlighting/Markdown.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 17.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6327,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								6327
+							]
+						],
+						"settings":
+						{
+							"auto_name": "<p># Mou</p>",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3554.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "_config.yml",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2595,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/YAML/YAML.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1050.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "_layouts/post.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8251,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3573.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "css/syntax.css",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3147,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								465,
+								596
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 899.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "css/custom-blog.css",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 25953,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								17,
+								17
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.sublime-syntax",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
@@ -261,17 +666,45 @@
 					},
 					"stack_index": 0,
 					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "_layouts/default.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 323,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								305,
+								305
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
 				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 23.0
+		"height": 26.0
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 34.0
 	},
 	"layout":
 	{
@@ -304,7 +737,7 @@
 	"project": "blog.sublime-project",
 	"replace":
 	{
-		"height": 42.0
+		"height": 48.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -342,7 +775,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 207.0,
+	"side_bar_width": 320.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

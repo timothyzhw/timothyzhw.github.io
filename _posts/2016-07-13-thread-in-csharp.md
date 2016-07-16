@@ -167,7 +167,7 @@ Thread.Sleep是暂停当前线程一段时间。
 
 在等待 Sleep 或 Join 时，线程被阻塞，所以不会耗用CPU的资源。
 
->>  Thread.Sleep(0) 和 Thread.Yield() 会将当前线程交出CPU，让CPU处理其他线程。
+> Thread.Sleep(0) 和 Thread.Yield() 会将当前线程交出CPU，让CPU处理其他线程。
 > 可以用来更加高深的性能调优，同时也可以测试是否有线程安全的bug。
 
 # 线程的工作原理
@@ -227,11 +227,10 @@ class ThreadTest
 {%endhighlight%}
 
 在上面例子中，线程 t 执行 Go( ) 的同时，主线程也调用了 Go( )。几乎同时打印出两个*hello*
+
 ``` console
-
 hello!
 hello!
-
 ```
 
 还可以用更简单的写法，不用定义delegate，直接出入一个方法，让C#自己推断出ThreadStart代理。
@@ -291,9 +290,11 @@ for (int i = 0; i < 10; i++)
   new Thread (() => Console.Write (i)).Start();
 {%endhighlight%}
 这段程序输出是不确定的，如：
+
 ``` console
 0223557799
 ```
+
 问题出在变量 **i** 在循环中指向同一处内存。因此每个线程打印出来的值是变化的。
 解决方法是使用一个临时变量
 {%highlight cSharp %}
@@ -397,6 +398,7 @@ public static void Main()
   catch (Exception ex)
   {
     // We'll never get here!
+
     Console.WriteLine ("Exception!");
   }
 }
@@ -429,6 +431,7 @@ static void Go()
 {%endhighlight%}
 和你在main线程最高层上进行trycatch一样，所有的线程都要有异常处理。未处理的异常会让整个程序垮掉。
 有些情况你不用处理异常，.NET Framework已经帮忙处理好了：
+
 * 异步代理
 * BackgroundWorker
 * TPL Task Parallel Library
@@ -442,6 +445,7 @@ static void Go()
 线程池限定了可同时运行的线程数量。太多活动的线程会加重线程管理的负担，降低CPU缓存的效率，从而阻塞操作系统。在线程池中，当达到一定数量后，任务就要等待，在别的任务完成后才能启动。
 
 有几个方法来使用进程池:
+
 * 使用TPL
 * 调用 ThreadPool.QueueUserWorkItem
 * 使用异步代理
@@ -494,7 +498,7 @@ static string DownloadString (string uri)
     return wc.DownloadString (uri);
 }
 {%endhighlight%}
-未处理的异常在查询返回值Result属性时，被包装到AggregateException里并转发。然而如果没有到检查结果，那么未处理的异常讲会让进程down掉。
+未处理的异常在查询返回值Result属性时，被包装到AggregateException里并转发。然而如果没有到检查结果，那么未处理的异常会让进程down掉。
 
 TPL是个好东西，特别适合多核心处理器，后续还有介绍。
 
@@ -530,6 +534,7 @@ Hello from the thread pool! 123
 QueueUserWorkItem没有提供一个获取线程返回值的机制，异步代理可以双向传入传出多个参数，并且未处理异常也不会返回给原线程（更准确的说，叫EndInvoke线程）。
 
 使用的方法如下：
+
 1. 实例化一个希望并行处理的目标函数，通常是 **Func** 代理
 2. 调用代理的 **BeginInvoke**，并保存 **IAsyncResult** 返回值
     **BeginInvoke**会立即返回给调用方，调用方可以在线程池运行的同时，再继续执行其他任务。
@@ -592,10 +597,11 @@ BeginInvoke 最后一个参数是用户定义值，可以通过IAsyncResult.Asyn
 
 当然也可以通过ThreadPool.SetMinThreads来设置一个下限。提高这个最小值，可以在很多线程blocked时，仍能并行同步工作。
 
-> 最小值一般是一个处理器一个线程。在服务器环境下，最小值会设置为50多
+最小值一般是一个处理器一个线程。在服务器环境下，最小值会设置为50多
 
 > 最小线程是怎么工作的呢？
->>设置了线程池的最小值x后，并不是马上就创建x个线程，线程池管理器会按需逐渐创建线程。不立马创建，是为了防止对应用造成冲击。假设有40个任务，每个任务执行10ms，在一台四核计算机上，需要执行100ms。理论上需要40个线程来执行。少了不能充分利用CPU，多了也没有必要。
->>如果假设线程不是执行10ms，而是请求网页，需要半秒钟等待回应，这时CPU时空闲的。线程池的管理策略就不行了，需要更多的线程，使得请求同时进行。
->>幸好，池管理器有个备份计划，如果他的队列半秒不动，就会在创建新的新城，每半秒一个，知道最大值。
->>半秒钟的延迟是个双刃剑，一方面保证不会马上消耗40M内存，另一方面造成不必要的等待。因此可以告诉池管理器，不要拖延，直接分配前x个线程，ThreadPool.SetMinThreads (50, 50);
+
+>>设置了线程池的最小值x后，并不是马上就创建x个线程，线程池管理器会按需逐渐创建线程。不立马创建，是为了防止对应用造成冲击。假设有40个任务，每个任务执行10ms，在一台四核计算机上，需要执行100ms。理论上需要40个线程来执行。少了不能充分利用CPU，多了也没有必要。  
+如果假设线程不是执行10ms，而是请求网页，需要半秒钟等待回应，这时CPU时空闲的。线程池的管理策略就不行了，需要更多的线程，使得请求同时进行。  
+幸好，池管理器有个备份计划，如果他的队列半秒不动，就会在创建新的新城，每半秒一个，直到最大值。  
+半秒钟的延迟是个双刃剑，一方面保证不会马上消耗40M内存，另一方面造成不必要的等待。因此可以告诉池管理器，不要拖延，直接分配前x个线程，ThreadPool.SetMinThreads (50, 50);    
