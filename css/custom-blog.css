@@ -1111,3 +1111,11 @@ img::-moz-selection {
 .page-fullscreen footer .copyright a:hover {
   color: #ddd;
 }
+
+.language-console{
+  background-color: #555;
+  color: #fff;
+  margin: -6px -10px;
+  padding: 6px 10px;
+  font-family:Consolas;
+}
