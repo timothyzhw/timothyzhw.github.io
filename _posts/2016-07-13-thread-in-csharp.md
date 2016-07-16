@@ -16,7 +16,7 @@ tags:
 # 概念
 c# 通过多线程来实现代码并行运行，一个线程相对独立，多个线程可以同时一起运行。
 
-一个c#程序自动运行在一个主线程（main）里，可以增加线程实现多线线程。例如：
+一个c#程序自动运行在一个主线程（main）里，可以通过增加线程实现多线线程。例如：
 {%highlight cSharp %}
 class ThreadTest
 {
@@ -141,20 +141,40 @@ lass ThreadSafe
 
 当线程被阻塞时，不会占用CPU资源。
 
-<<<<<<< Updated upstream
 # Join和Sleep
 
 如果想等一个线程结束，可以调用这个线程的t.Join()方法。
-
+{%highlight cSharp %}
 static void Main()
 {
   Thread t = new Thread (Go);
   t.Start();
   t.Join();
   Console.WriteLine ("Thread t has ended!");
-=======
-在多处理器的计算机，不同的线程同时在不同CPU上运行，多线程就是混合时间切片，并做到可靠同步。
-但是可以肯定的是
+
+}
+
+static void Go()
+{
+  for (int i = 0; i < 1000; i++) Console.Write ("y");
+}
+{%endhighlight%}
+
+结果会打印1000次 **y**, 然后打印 **Thread t has ended!** .
+*t.Join()* 还可以加上参数，表示在线程执行一段时间后，继续执行后续代码。
+
+Thread.Sleep是暂停当前线程一段时间。
+
+在等待 Sleep 或 Join 时，线程被阻塞，所以不会耗用CPU的资源。
+
+>>  Thread.Sleep(0) 和 Thread.Yield() 会将当前线程交出CPU，让CPU处理其他线程。
+> 可以用来更加高深的性能调优，同时也可以测试是否有线程安全的bug。
+
+# 线程的工作原理
+
+多线程是由一个线程调度器进行管理。CLR的调度器是操作系统代理函数。
+线程调度器保证所有活动的线程分配合适的执行时间，并且在线程等待和阻塞不会占用CPU。
+在多处理器的计算机上，不同的线程同时在不同CPU上运行，多线程就是混合时间切片，并做到可靠同步。
 
 # 线程和进程
 
@@ -395,15 +415,15 @@ static void Go()
 {
   try
   {
-    // ...
     throw null;    // The NullReferenceException will get caught below
-    // ...
+
   }
   catch (Exception ex)
   {
     // Typically log the exception, and/or signal another thread
+
     // that we've come unstuck
-    // ...
+
   }
 }
 {%endhighlight%}
@@ -441,37 +461,10 @@ TPL和PLINQ是相当强大和高级的，即使没有引入进程池，也可以
 static void Main()
 {
   Task.Factory.StartNew (Go);
->>>>>>> Stashed changes
 }
-
-static void Go()
-{
-<<<<<<< Updated upstream
-  for (int i = 0; i < 1000; i++) Console.Write ("y");
-}
-
-结果会打印1000次 **y**, 然后打印 **Thread t has ended!** .
-*t.Join()* 还可以加上参数，表示在线程执行一段时间后，继续执行后续代码。
-
-Thread.Sleep是暂停当前线程一段时间。
-
-在等待 Sleep 或 Join 时，线程被阻塞，所以不会耗用CPU的资源。
-
->>  Thread.Sleep(0) 和 Thread.Yield() 会将当前线程交出CPU，让CPU处理其他线程。
-> 可以用来更加高深的性能调优，同时也可以测试是否有线程安全的bug。
-
-# 线程的工作原理
-
-多线程是由一个线程调度器进行管理。CLR的调度器是操作系统代理函数。
-线程调度器保证所有活动的线程分配合适的执行时间，并且在线程等待和阻塞不会占用CPU。
-
-单核
-=======
-  Console.WriteLine ("Hello from the thread pool!");
-}
-
-Task.Factory.StartNew 返回一个Task对象，使用这个对象来监视任务，如调用Wait来等待任务完成。
 {%endhighlight%}
+Task.Factory.StartNew 返回一个Task对象，使用这个对象来监视任务，如调用Wait来等待任务完成。
+
 > 注意：如果调用了Wait方法，未处理的异常会被抛到宿主（调用Wait的）线程。如果不是调用Wait，而是任由其自动执行，那么未处理的异常就会是整个程序停止。
 
 泛型Task\<TResult\> 是Task的子类，使用它可以在task运行完成后得到一个返回值。下面的例子中，使用了Task\<TResult\> 来下载一个网页：
@@ -483,11 +476,15 @@ static void Main()
     ( () => DownloadString ("http://www.linqpad.net") );
 
   // We can do other work here and it will execute in parallel:
+
   RunSomeOtherMethod();
 
   // When we need the task's return value, we query its Result property:
+
   // If it's still executing, the current thread will now block (wait)
+
   // until the task finishes:
+
   string result = task.Result;
 }
 
@@ -544,9 +541,9 @@ static void Main()
 {
   Func<string, int> method = Work;
   IAsyncResult cookie = method.BeginInvoke ("test", null, null);
-  //
+
   // ... here's where we can do other work in parallel...
-  //
+
   int result = method.EndInvoke (cookie);
   Console.WriteLine ("String length is: " + result);
 }
@@ -566,8 +563,7 @@ static void Main()
 {
   Func<string, int> method = Work;
   method.BeginInvoke ("test", Done, method);
-  // ...
-  //
+
 }
 
 static int Work (string s) { return s.Length; }
@@ -603,4 +599,3 @@ BeginInvoke 最后一个参数是用户定义值，可以通过IAsyncResult.Asyn
 >>如果假设线程不是执行10ms，而是请求网页，需要半秒钟等待回应，这时CPU时空闲的。线程池的管理策略就不行了，需要更多的线程，使得请求同时进行。
 >>幸好，池管理器有个备份计划，如果他的队列半秒不动，就会在创建新的新城，每半秒一个，知道最大值。
 >>半秒钟的延迟是个双刃剑，一方面保证不会马上消耗40M内存，另一方面造成不必要的等待。因此可以告诉池管理器，不要拖延，直接分配前x个线程，ThreadPool.SetMinThreads (50, 50);
->>>>>>> Stashed changes
