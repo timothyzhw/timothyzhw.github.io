@@ -45,7 +45,7 @@ xxxxxxxxxxyyyyyyyyxxxyxyxyx
 xyyyyyyyyxxxyxyxyxxyyyyyyyy
 ```
 
-![线程](/img/post/7-13-threading/newthread.png)
+![线程](/img/post/7-13-threading/thread.png)
 当线程启动后，其IsAlive属性为true，直至线程结束。
 当线程构造函数中传入的delegate执行完成，线程就结束了，并且不会被重启。
 
@@ -89,7 +89,7 @@ class ThreadTest
   }
 
   // Note that Go is now an instance method
-  
+
   void Go()
   {
      if (!done) { done = true; Console.WriteLine ("Done"); }
