@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "Threading in C# "
-subtitle:   "part 1 getting started"
+subtitle:   "Part 1 getting started"
 date:       2016-07-13
 author:     "Joseph Albahari, Trans by Tim"
 header-img: "img/post-bg-2015.jpg"
