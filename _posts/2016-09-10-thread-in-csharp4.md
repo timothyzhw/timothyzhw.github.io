@@ -124,5 +124,23 @@ PLINQ和一般LINQ查询相同，是懒加载的。也就是说当开始消费�
 
 当枚举结果
 
+# PLINQ和排序
+
+并行操作的副作用是收集的结果，不必和提交的顺序一致，在上图已经示意。也就是说LINQ的保证按照顺序输出，不在被持有。
+如果真的需要保证顺序，可以强制在AsParallel()之后调用AsOrdered():
+
+myCollection.AsParallel().AsOrdered()...
+
+调用AsOrdered会引发大量元素的性能冲击，因为PLINQ必须跟踪每个元素的初始位置。
+
+可以在后续查询中使用AsUnordered来消除AsOrdered的影响，
+
+inputSequence.AsParallel().AsOrdered()
+  .QueryOperator1()
+  .QueryOperator2()
+  .AsUnordered()       // From here on, ordering doesn’t matter
+  .QueryOperator3()
+  ...
+
 
 
