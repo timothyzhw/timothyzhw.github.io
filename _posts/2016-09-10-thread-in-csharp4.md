@@ -90,6 +90,27 @@ AsParallel是System.Linq.ParallelEnumerable类中的一个扩展方法，
 它将输入的序列绑定到 ParallelQuery<TSource>，这将使得后续的LINQ查询操作绑定到ParallelEnumerable。
 这些提供了标准查询操作的并行实现。本质上，是将输入的序列划分成小段并在不同线程执行，然后收集返回结果到一个输出序列：
 
-调用AsSequential()方法会将
+调用AsSequential()方法会将解绑ParallelQuery，后续的查询将绑定在标准的查询操作，顺序执行。
+在调用那些有副作用或者非线程安全的方法前，必须要先调用AsSequential()。
+
+对于接受两个输入序列的查询操作（如Join,GroupJoin,Concat,Union,Intersect,Except和Zip），必须在两个输入序列上都使用AsParallel()，否则会有异常抛出。
+当然，不必在查询执行过程中一直使用AsParallel，因为PLINQ操作的输出仍然是ParallelQuery。事实上，再次调用AsParallel会降低效率，因为这将强制合并再划分查询。
+
+{%highlight cSharp %} 
+mySequence.AsParallel()           // Wraps sequence in ParallelQuery<int>
+          .Where (n => n > 100)   // Outputs another ParallelQuery<int>
+          .AsParallel()           // Unnecessary - and inefficient!
+          .Select (n => n * n)
+{%endhighlight%}
+
+不是所有的查询操作都能用并行加速。对于不能的那些，PLINQ将替换为顺序操作。如果PLINQ认为并行实际将减缓局部执行速度，可能会按照顺序来执行。
+
+PLINQ只能作用于本地集合，LINQ to SQL 和 Entity Framework 不能使用，因为这些情况下，LINQ会转换成SQL并在数据库服务器执行。当然，可以使用PLINQ对数据库结果上执行额外的本机操作。
+
+```
+如果PLINQ执行抛出异常，是一个AggregateException，其中的InnerExceptions属性包括真实的异常。参考 Working with AggregateException。 
+```
+
+
 
 
