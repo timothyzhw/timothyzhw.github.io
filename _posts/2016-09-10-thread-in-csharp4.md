@@ -113,4 +113,16 @@ PLINQ只能作用于本地集合，LINQ to SQL 和 Entity Framework 不能使用
 
 
 
+'''
+为什么不默认使用AsParallel
+
+'''
+
+# Parallel执行基本轨迹
+
+PLINQ和一般LINQ查询相同，是懒加载的。也就是说当开始消费结果时才触发真正的查询操作，典型的是用foreach循环。
+
+当枚举结果
+
+
 
