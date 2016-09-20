@@ -142,5 +142,109 @@ inputSequence.AsParallel().AsOrdered()
   .QueryOperator3()
   ...
 
+AsOrdered没有设置为默认，是因为对于一般的查询并不关心原始输入的顺序。也就是说，如果将AsOrdered设置为默认，为了达到最佳性能，还要使用AsUnordered在大部分查询上，那也是一种负担。
+
+# PLINQ 局限
+
+当前在PLINQ并行中有一些实现上的限制。这些限制在以后的sp或新版Framework中会取消。
+
+下面的查询操作将阻止并行，直到源数据在原来的索引位置。
+
+* Take,TakeWhile,Skip,SkipWhile
+* Select,SelectMany,ElementAt （有索引的版本）
+
+大部分的操作改变了元素的索引位置（包括Where这样移除元素的查询）。这就意味着如果要使用操作，通常是要在查询一开始就用。
+
+下面的查询是并行的，但是使用复杂的划分策略有时会比顺序执行还要慢：
+* Join，Groupby,GroupJoin,Distinct,Union,Intersect,Except 
+
+Aggregate操作的seeded多态在标准情况下不会并行，PLINQ提供了特殊的解决方法。
+
+所有其他的操作都是并行的，然而不能保证这些操作在执行时是并行的。PLINQ如果判断并行会减慢部分查询操作的速度，那它会执行顺序操作。
+可以重写这个操作，AsParallel()使用下面的方法强行并行化：
+
+.WithExecutionMode (ParallelExecutionMode.ForceParallelism)
+
+# 示例： Parallel Spellchecker
+
+假设要实现一个能在超大文档上进行快速的拼写检查，并能充分使用多核CPU。将算法写成LINQ后，可以很容易并行。
+
+第一步是下载一个英文词典到一个HashSet来实现高效查表：
+if (!File.Exists ("WordLookup.txt"))    // Contains about 150,000 words
+  new WebClient().DownloadFile (
+    "http://www.albahari.com/ispell/allwords.txt", "WordLookup.txt");
+ 
+var wordLookup = new HashSet<string> (
+  File.ReadAllLines ("WordLookup.txt"),
+  StringComparer.InvariantCultureIgnoreCase);
+
+下面使用单词查表来构造一个测试文档，文档随机取了1,00,000个单词，并引入两个错误的单词。
+
+var random = new Random();
+string[] wordList = wordLookup.ToArray();
+ 
+string[] wordsToTest = Enumerable.Range (0, 1000000)
+  .Select (i => wordList [random.Next (0, wordList.Length)])
+  .ToArray();
+ 
+wordsToTest [12345] = "woozsh";     // Introduce a couple
+wordsToTest [23456] = "wubsie";     // of spelling mistakes.
+
+下面可以使用wordLookup来测试wordsToTest，进行并行检查。PLINQ做起来很容易：
+
+var query = wordsToTest
+  .AsParallel()
+  .Select  ((word, index) => new IndexedWord { Word=word, Index=index })
+  .Where   (iword => !wordLookup.Contains (iword.Word))
+  .OrderBy (iword => iword.Index);
+ 
+query.Dump();     // Display output in LINQPad
+
+下面是输出结果
+
+IndexedWord 是一个自定义的结构体：
+
+struct IndexedWord { public string Word; public int Index; }
+
+wordLookup.Contains方法在执行中让查询有点“肉”，所以值得并行化。
+
+···
+可以使用匿名类型来代替IndexedWord结构，但是会降低性能，因为匿名类型会分配堆上，并需要垃圾回收。
+
+这个差别在顺序执行时无所谓，但是在并行查询是，基于栈的分配将有很大的优势。因为基于栈的分配高度并行（每个线程有自己的栈），相反所有线程必须竞争一个堆，这个堆只有单一的内存管理器和垃圾回收器。
+···
+
+## 使用ThreadLocal<T>
+
+继续扩展上面的例子，让测试单词随机生成的过程并行化。上面构造测试数据使用了LINQ，所以很容易并行执行。
+
+这是原来的代码：
+
+string[] wordsToTest = Enumerable.Range (0, 1000000)
+  .Select (i => wordList [random.Next (0, wordList.Length)])
+  .ToArray();
+
+  不幸的的是 random.Next 不是线程安全的，简单的将 AsParallel()加入到查询中是不行的。可能的解决方法是在random.Next使用锁，然而这样会限制并发。
+  好的方法是使用ThreadLocal<Random>来新建一个独立的Random对象给每个线程。下面是并行的代码
+
+  var localRandom = new ThreadLocal<Random>
+ ( () => new Random (Guid.NewGuid().GetHashCode()) );
+ 
+string[] wordsToTest = Enumerable.Range (0, 1000000).AsParallel()
+  .Select (i => wordList [localRandom.Value.Next (0, wordList.Length)])
+  .ToArray();
+
+在工厂函数中，使用了Guid的哈希值来初始化Random对象，保证短时间内生成的Random对象种子是不同的。
+````
+ MSDN对Random的线程安全的说明
+  Instead of instantiating individual Random objects, we recommend that you create a single Random instance to generate all the random numbers needed by your app. However, Random objects are not thread safe. If your app calls Random methods from multiple threads, you must use a synchronization object to ensure that only one thread can access the random number generator at a time. If you don't ensure that the Random object is accessed in a thread-safe way, calls to methods that return random numbers return 0.
+```
+
+
+
+
+
+
+
 
 
