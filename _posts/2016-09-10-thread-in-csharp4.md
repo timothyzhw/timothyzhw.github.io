@@ -240,6 +240,24 @@ string[] wordsToTest = Enumerable.Range (0, 1000000).AsParallel()
   Instead of instantiating individual Random objects, we recommend that you create a single Random instance to generate all the random numbers needed by your app. However, Random objects are not thread safe. If your app calls Random methods from multiple threads, you must use a synchronization object to ensure that only one thread can access the random number generator at a time. If you don't ensure that the Random object is accessed in a thread-safe way, calls to methods that return random numbers return 0.
 ```
 
+# 纯粹的功能
+
+因为PLINQ并行线程上执行查询，所以必须小心不要执行线程不安全的操作，特别是写到变凉里的副作用而引发的线程不安全。
+
+// The following query multiplies each element by its position.
+// Given an input of Enumerable.Range(0,999), it should output squares.
+int i = 0;
+var query = from n in Enumerable.Range(0,999).AsParallel() select n * i++;
+
+当然可以用锁或者是Interlock，但是问题依然存在，没有在对应的输入上有正确的值。加上AsOrdered也不管用，因为AsOrdered只是保证了输出的顺序，而不是执行的顺序，实际上也不是顺序执行。
+
+因此执行可以替换为使用indexed版本的Select
+var query = Enumerable.Range(0,999).AsParallel().Select ((n, i) => n * i);
+
+为了达到最高效，所有从
+
+
+
 
 
 
