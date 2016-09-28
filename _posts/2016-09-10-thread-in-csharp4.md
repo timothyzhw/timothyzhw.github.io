@@ -239,6 +239,11 @@ string[] wordsToTest = Enumerable.Range (0, 1000000).AsParallel()
  MSDN对Random的线程安全的说明
   Instead of instantiating individual Random objects, we recommend that you create a single Random instance to generate all the random numbers needed by your app. However, Random objects are not thread safe. If your app calls Random methods from multiple threads, you must use a synchronization object to ensure that only one thread can access the random number generator at a time. If you don't ensure that the Random object is accessed in a thread-safe way, calls to methods that return random numbers return 0.
 ```
+什么时候用PLINQ
+你可能试着在你的应用里搜寻已经有的LINQ查询，并试着改成并行。但是似乎没有什么效果，因为大部分问题用LINQ就执行的很快，并行没有好处。
+更好的方式是找一个CPU敏感的瓶颈，并考虑是否可以用LINQ来实现？
+
+PLINQ适合那些烦人的并行问题，同样适用于
 
 # 纯粹的功能
 
@@ -254,7 +259,158 @@ var query = from n in Enumerable.Range(0,999).AsParallel() select n * i++;
 因此执行可以替换为使用indexed版本的Select
 var query = Enumerable.Range(0,999).AsParallel().Select ((n, i) => n * i);
 
-为了达到最高效，所有从
+为了最好的性能，所有查询的方法中都应该线程安全，通过不写字段和属性的方式。如果通过锁的方式，并行化的潜能被限制，被划分为函数包含锁的执行时间总。
+
+#调用阻塞或者I/O密集型的函数
+
+有时一个长时间执行的查询不是CPU密集型的，而是在等待一些东西——例如下载网页或硬件反馈。PLINQ可以高效的并行化这样的查询，通过在AsParallel后面调用WithDegreeOfParallelism。
+例子：假设要同时ping六个网站，除了使用繁琐的asynchronous delegates或者手工起6个线程。然而也可以使用PLINQ轻松完成：
+from site in new[]
+{
+  "www.albahari.com",
+  "www.linqpad.net",
+  "www.oreilly.com",
+  "www.takeonit.com",
+  "stackoverflow.com",
+  "www.rebeccarey.com"  
+}
+.AsParallel().WithDegreeOfParallelism(6)
+let p = new Ping().Send (site)
+select new
+{
+  site,
+  Result = p.Status,
+  Time = p.RoundtripTime
+}
+
+WithDegreeOfParallelism强制PLINQ同时运行一定数量的任务。在调用阻塞的方法（如Ping.Send）时，必须这样用。因为PLINQ假设查询都是CPU密集型的而分配相应的任务。这时一个双核机器，PLINQ默认会先启动两个任务，这明显是不符合预期的。
+
+```
+PLINQ的每个任务是在一个线程上服务，受制于线程池。可以通过ThreadPool.SetMinThreads.加速初始化线程。
+
+```
+
+另一个例子，假设开发一个监控系统，需要不断将四个安保摄像机上的图片从合并成一个图片，并显示在CCTV。其中摄像机的类：
+
+class Camera
+{
+  public readonly int CameraID;
+  public Camera (int cameraID) { CameraID = cameraID; }
+ 
+  // Get image from camera: return a simple string rather than an image
+  public string GetNextFrame()
+  {
+    Thread.Sleep (123);       // Simulate time taken to get snapshot
+    return "Frame from camera " + CameraID;
+  }
+}
+
+为了得到合成图像，必须在四个camera对象上依次调用GetNextFrame。假设操作是I/O相关的，使用PLINQ可以很容易实现四个框同时并行：
+Camera[] cameras = Enumerable.Range (0, 4)    // Create 4 camera objects.
+  .Select (i => new Camera (i))
+  .ToArray();
+ 
+while (true)
+{
+  string[] data = cameras
+    .AsParallel().AsOrdered().WithDegreeOfParallelism (4)
+    .Select (c => c.GetNextFrame()).ToArray();
+ 
+  Console.WriteLine (string.Join (", ", data));   // Display data...
+}
+
+GetNextFrame 是一个阻塞的方法，所以使用WithDegreeOfParallelism 来实现期望的同步。
+
+## 修改并行化的值
+
+在一个PLINQ查询中只能使用一次WithDegreeOfParallelism 。如果想再次调用，需要再次调用AsParallel：
+
+"The Quick Brown Fox"
+  .AsParallel().WithDegreeOfParallelism (2)
+  .Where (c => !char.IsWhiteSpace (c))
+  .AsParallel().WithDegreeOfParallelism (3)   // Forces Merge + Partition
+  .Select (c => char.ToUpper (c))
+
+# Cancellation 取消
+
+# 任务并行机制
+
+任务并行机制是用PFX实现并行化的最底层方法。这一层的类在System.Threading.Tasks命名空间，由下面的类组成：
+
+Class         	                  | Purpose
+Task	                            | For managing a unit for work
+Task<TResult>            	| For managing a unit for work with a return value
+TaskFactory	                  | For creating tasks
+TaskFactory<TResult>  |	For creating tasks and continuations with the same return type
+TaskScheduler               | For managing the scheduling of tasks
+TaskCompletionSource | For manually controlling a task’s workflow
+
+本质上，任务是轻量化管理并行单元的对象。task使用CLR的线程池来避免开启一个专用线程的开销，这个线程池和ThreadPool.QueueUserWorkItem用的是一样的。
+在CLR 4.0 做了调整，使得Tasks更高效。
+
+Task可以在想并行执行时使用。不过Task为了充分利用多核做了调整。实际上Parallel类和PLINQ内部都是建立在task并行上。
+
+Task不仅仅是提供一个简单有效的方式来使用线程池，而且还提供了很多强大功能来管理工作单元，这包括：
+
+* 协调任务安排
+* 建立一个父子关系，当一个任务启用了一个任务
+* 实现了联合取消
+* 等待一组任务，而不需要一个信号量
+* 加到继续执行的任务
+* 在多个先行任务后安排一个后续任务
+* 将异常传播到 父级、后续、和任务消费者
+
+Task也实现了局部工作队列，可以快速的执行子任务，而不需要额外的花费，在那些自有单一工作队列。
+
+## 建立和启动任务
+
+第一篇提到可以使用Task.Factory.StartNew来创建并启动任务，同时传入一个Action代理：
+Task.Factory.StartNew (() => Console.WriteLine ("Hello from a task!"));
+
+泛型版本的Task<TResult>可以得到任务的执行完成后的返回值：
+
+Task<string> task = Task.Factory.StartNew<string> (() =>    // Begin task
+{
+  using (var wc = new System.Net.WebClient())
+    return wc.DownloadString ("http://www.linqpad.net");
+});
+ 
+RunSomeOtherMethod();         // We can do other work in parallel...
+ 
+string result = task.Result;  // Wait for task to finish and fetch result.
+
+Task.Factory.StartNew 将创建和开始任务一步就做完。当然可以先初始化一个Task对象，然后调用Start方法：
+
+var task = new Task (() => Console.Write ("Hello"));
+...
+task.Start();
+
+这种方式下创建的任务可以用RunSynchronously 代替Start，使得Task在调用者的线程上同步运行。（不开新的线程）
+ 
+### 指定一个状态对象
+
+Task.Factory.StartNew 初始化任务时，可以指定一个状态对象，它将传入到目标方法。当不想用lambda表达式，而想用个方法的时候，可以这么做：
+
+static void Main()
+{
+  var task = Task.Factory.StartNew (Greet, "Hello");
+  task.Wait();  // Wait for task to complete.
+}
+ 
+static void Greet (object state) { Console.Write (state); }   // Hello
+
+假设已经用了lambda表达式，state object 可以赋值到一个有意义的名字给任务，然后使用AsyncState来查询名字。
+
+static void Main()
+{
+  var task = Task.Factory.StartNew (state => Greet ("Hello"), "Greeting");
+  Console.WriteLine (task.AsyncState);   // Greeting
+  task.Wait();
+}
+ 
+static void Greet (string message) { Console.Write (message); }
+
+
 
 
 
