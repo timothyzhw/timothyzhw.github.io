@@ -412,6 +412,125 @@ static void Greet (string message) { Console.Write (message); }
 
 
 
+# 优化PLINQ
+## 输出的优化
+
+PLINQ的优点之一就是可以方便地从并行工作中收集结果到一个单一的输出序列。如果仅仅是在序列的每个元素上执行一些函数:
+foreach (int n in parallelQuery)
+  DoSomething (n);
+
+这种情况下不关心执行顺序，可以使用ForAll方法来提高效率。
+
+ForAll方法在ParallenQuery的每个输出元素上执行一个代理。它直接钩在PLINQ内部，绕过了收集和列举结果的步骤
+
+"abcdef".AsParallel().Select (c => char.ToUpper(c)).ForAll (Console.Write);
+
+![forall](/img/post/9-10-theadprogram/ForAll.png)
+
+收集和枚举结果不是非常复杂的操作，所以ForAll优化的结果最好的是那些数据量大并要求快速执行的输入。
+
+## 输入端优化
+
+PLINQ有三个讲输入元素分配到线程的划分策略：
+Strategy 	Element allocation 	Relative performance
+Chunk partitioning 	Dynamic 	Average
+Range partitioning 	Static 	Poor to excellent
+Hash partitioning 	Static 	Poor
+
+对于那些需要比较元素的查询操作（GroupBy，Join，GroupJoin，Intersect，Except，Union，Distinct），没有选择只能使用 Hash划分。
+Hash 划分相对低效因为要预先计算每个元素的hashcode，河阳有个hashcode标识的元素可以在同一线程上运行。如果发现执行太慢，可以调用AsSequential来取消并行。
+
+对于其他的查询操作，需要选择是使用range还是chunck策略。默认上：
+
+* 如果输入的序列是可索引的（数组或者IList<T>）,PLINQ选择的是range划分
+* 否则是chunk划分
+
+简单的说，range划分对于那些长的序列，序列中的元素执行花费的CPU时间差不多，那相对执行较快。否则chunk执行的快一点。
+
+强制使用range划分
+
+* 如果一个输入一Enumerable.Range开始，那么要使用ParallelEnumerable.Range代替。
+* 另外可以在输入序列上简单调用ToList或ToArray（当然这个操作会引发性能的损失需要考虑到）
+
+要强制使用chunk划分，序列使用Partitioner.Create做一下包装：
+
+int[] numbers = { 3, 4, 5, 6, 7, 8, 9 };
+var parallelQuery =
+  Partitioner.Create (numbers, true).AsParallel()
+  .Where (...)
+
+Partitioner.Create的第二个参数指明希望是一个负载均衡的查询，也就是说要用chunk划分。
+
+chunk划分的工作是让每个工作的线程定期的从输入元素里获取一小段元素来执行。PLINQ开始先划分成非常小的块（一次一个或两个元素），然后在查询执行过程中不断增加块的大小：
+这保证小的序列可以高效并行，而大的序列又不会过多的来来回回。如果一个线程碰巧获取的一个简单元素（执行很快），那会接着获取更多的块。系统保证么个线程执行同等的工作。
+唯一的缺点是才从共享的的输入序列中取元素时要同步（一般是排他锁），这需要额外的花费和内容。
+
+![part](/img/post/9-10-theadprogram/Partitioning.png)
+
+# 并发集合 Concurrent Collections
+
+Framework4.0 提供了一套新的集合在System.Collections.Concurrent 命名空间下。所有的这些都是完完全全线程安全的：
+
+Concurrent collection 	Nonconcurrent equivalent
+ConcurrentStack<T> 	Stack<T>
+ConcurrentQueue<T> 	Queue<T>
+ConcurrentBag<T> 	(none)
+BlockingCollection<T> 	(none)
+ConcurrentDictionary<TKey,TValue> 	Dictionary<TKey,TValue>
+
+并发集合通常在需要线程安全的场合。然后有几个注意事项：
+* 并发集合是用来给并行程序。除了并发的情况，其他条件下，传统的集合表现的更好。
+* 线程安全的集合，不能保证使用代码的是线程安全的。
+* 如果一个线程读，另一个线程修改，那么不会有异常，但是读到的是新旧都有的。
+* 没有并发版本的List<T>
+* 并发的栈、队列和包内部都是链表。这使得先对于非并发的Stack和Queue类的内存效率要低，但是对并发获取更好，因为链表实现可以不用锁或者少量锁。（链表插入只需要更新两个引用）
+
+也就是说，并发集合不是在一般集合上加个锁。为了说明这点，可以在一个线程上执行下面的代码
+
+ar d = new ConcurrentDictionary<int,int>();
+for (int i = 0; i < 1000000; i++) d[i] = 123;
+
+这段代码要比后面这段慢3倍
+
+var d = new Dictionary<int,int>();
+for (int i = 0; i < 1000000; i++) lock (d) d[i] = 123;
+
+（读起来快是因为读的时候不加锁）
+
+并发集合与一般的集合使用上也不一样，如果想要执行一些特殊的方法实现原子的尝试执行，如TryPop。大部分的方法没有在ProducerConsumerCollection<T>接口上实现。
+
+## ProducerConsumerCollection<T>
+
+一个生产/消费的集合主要有两个主要作用：
+* 增加一个元素（生产）
+* 获取一个元素并移除（消费）
+
+经典的示例就是栈和队列。生产者/消费者集合在并行编程中意义重大，因为这将有益于高效的无锁的实现。
+
+ProducerConsumerCollection<T>接口代表了一个线程安全的 生产者/消费者 集合。下面的类实现了这个接口：
+
+ConcurrentStack<T>
+ConcurrentQueue<T>
+ConcurrentBag<T>
+
+IProducerConsumerCollection<T> 继承自 ICollection，并增加了一下方法：
+
+void CopyTo (T[] array, int index);
+T[] ToArray();
+bool TryAdd (T item);
+bool TryTake (out T item);
+
+TryAdd和TryTake方法检查是否可以执行增/删操作，如果可以就马上执行。检查和执行是原子的，去除了在一般集合范围内加锁的要求。
+int result;
+lock (myStack) if (myStack.Count > 0) result = myStack.Pop();
+
+
+
+
+
+
+
+
 
 
 
