@@ -410,6 +410,171 @@ static void Main()
  
 static void Greet (string message) { Console.Write (message); }
 
+###TaskCreationOptions
+
+可以通过在任务StartNew的时候指定TaskCreationOptions 枚举值来协调任务执行。TaskCreationOptions 是位标识的枚举：
+
+LongRunning
+PreferFairness
+AttachedToParent
+
+LongRunning 要求调度器专门拿出一个线程给任务。这对于一直运行的任务很有好处，因为不这样的话它们会占据队列，
+让短时运行的任务无意义的等待。
+
+PreferFairness 告诉调度器尽量保证任务按照创建的顺序执行。调度器通常不会保证顺序，因为它在内部使用了局部的工作暂存队列。这个优化对那些小任务非常有利。
+
+AttachedToParent 是建立子任务
+
+### 子任务
+
+当一个任务重启动另一个子任务，可以通过设置TaskCreationOptions.AttachedToParent在二者之间建立父子关系：
+
+Task parent = Task.Factory.StartNew (() =>
+{
+  Console.WriteLine ("I am a parent");
+ 
+  Task.Factory.StartNew (() =>        // Detached task
+  {
+    Console.WriteLine ("I am detached");
+  });
+ 
+  Task.Factory.StartNew (() =>        // Child task
+  {
+    Console.WriteLine ("I am a child");
+  }, TaskCreationOptions.AttachedToParent);
+});
+
+子任务的作用就是当等待一个父任务完成时，会同时等待所有的子任务完成。
+
+## 等待任务
+
+可以明确等待任务完成用以下两种方法：
+
+* 调用Wait方法（超时参数可选）
+* 访问Result
+
+也可以一次等待多个任务，使用Task.WaitAll方法和Task.WaitAny方法。
+
+WaitAll和一次等待多个任务相似，但是效率更高，大概只需要一个上下文切换。同样如果任意一个任务抛出异常，WaitAll仍会等待所有的任务完成并且抛出一个 AggregateException异常，包含了每个失败任务的异常。等效下面的操作：
+
+// Assume t1, t2 and t3 are tasks:
+var exceptions = new List<Exception>();
+try { t1.Wait(); } catch (AggregateException ex) { exceptions.Add (ex); }
+try { t2.Wait(); } catch (AggregateException ex) { exceptions.Add (ex); }
+try { t3.Wait(); } catch (AggregateException ex) { exceptions.Add (ex); }
+if (exceptions.Count > 0) throw new AggregateException (exceptions);
+
+调用WaitAny等效于等待[ManualResetEventSlim]()， 这个标记了每个任务完成。
+
+有超时和传入取消标识到Wait方法，可以取消等待（不是取消任务）
+
+## 错误处理
+
+当等待任务完成时，任何为处理的异常都方便的抛到调用方，包装成一个AggregateException 异常。这通常无需在task里写异常处理的代码，可以这么写
+
+int x = 0;
+Task<int> calc = Task.Factory.StartNew (() => 7 / x);
+try
+{
+  Console.WriteLine (calc.Result);
+}
+catch (AggregateException aex)
+{
+  Console.Write (aex.InnerException.Message);  // Attempted to divide by 0
+}
+
+对于那些分离的任务还是需要进行异常处理，否则会破坏整个应用，当任务脱离处理范围到垃圾回收时。同样在WaitAll超时后，任务会被脱离出来变成未处理的。
+
+对于父任务，等待父任务的状态在子任务等待，任何子任务的异常都被冒泡到父任务：
+
+TaskCreationOptions atp = TaskCreationOptions.AttachedToParent;
+var parent = Task.Factory.StartNew (() => 
+{
+  Task.Factory.StartNew (() =>   // Child
+  {
+    Task.Factory.StartNew (() => { throw null; }, atp);   // Grandchild
+  }, atp);
+});
+ 
+// The following call throws a NullReferenceException (wrapped
+// in nested AggregateExceptions):
+parent.Wait();
+
+>>> 有趣的是当你检查Task的Exception 属性的时候，读取的动作会阻止异常破坏应用。关联关系是PFX的设计人员希望你不要忽略异常，但是当你知道会发生异常时，也不会说非要中断你的程序。
+
+>>> 未处理的异常不会马上就导致应用中止。这会延迟到垃圾回收机捕捉到任务并调用销毁。中止被延迟是因为系统不知道你是否在垃圾回收前有计划调用Wait或Result或Exception属性。这个延迟可能让你的错误分析误入歧途。
+
+下面还有个异常处理的方法 [continuations]().
+
+## 取消任务
+
+在新建任务的时候，允许传入一个[取消标识]()。这可以使得你有机会取消任务，使用公用的取消模式
+
+var cancelSource = new CancellationTokenSource();
+CancellationToken token = cancelSource.Token;
+ 
+Task task = Task.Factory.StartNew (() => 
+{
+  // Do some stuff...
+  token.ThrowIfCancellationRequested();  // Check for cancellation request
+  // Do some stuff...
+}, token);
+...
+cancelSource.Cancel();
+
+要检查被取消的任务，捕捉AggregateException 并且检查内部的异常
+
+try 
+{
+  task.Wait();
+}
+catch (AggregateException ex)
+{
+  if (ex.InnerException is OperationCanceledException)
+    Console.Write ("Task canceled!");
+}
+
+如果任务没有开始就取消掉了，那任务不会被调度，直接就抛出一个 OperationCanceledException 。
+因为 取消标识 被别的API认识，可以将他们传入别的构造函数，取消动作会无缝蔓延：
+
+var cancelSource = new CancellationTokenSource();
+CancellationToken token = cancelSource.Token;
+ 
+Task task = Task.Factory.StartNew (() =>
+{
+  // Pass our cancellation token into a PLINQ query:
+  var query = someSequence.AsParallel().WithCancellation (token)...
+  ... enumerate query ...
+});
+
+在cancelSource上调用Cancel将取消PLINQ查询，并抛出OperationCanceledException 在task的内部，随后将引发task取消。
+
+## Continuations
+
+有时要在一个任务完成后，马上开始一个新任务。使用ContinueWith 方法就是干这个用的：
+
+Task task1 = Task.Factory.StartNew (() => Console.Write ("antecedant.."));
+Task task2 = task1.ContinueWith (ant => Console.Write ("..continuation"));
+
+当task1完成后（成功、失败、取消），task2自动开始。如果task1在未运行到第二行的时候就执行完了，那task2会马上执行。ant参数是对前一个任务的引用。
+
+例子里的情况和下面的相同：
+
+Task task = Task.Factory.StartNew (() =>
+{
+  Console.Write ("antecedent..");
+  Console.Write ("..continuation");
+});
+
+
+
+
+
+
+
+
+
+
 
 
 
