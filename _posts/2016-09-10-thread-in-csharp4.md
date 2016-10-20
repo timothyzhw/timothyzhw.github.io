@@ -566,6 +566,61 @@ Task task = Task.Factory.StartNew (() =>
   Console.Write ("..continuation");
 });
 
+### Continuations and exceptions
+
+后续的任务可以检查前置的任务是否有异常，通过Exception属性。下面的代码会打印出NullReferenceException 到控制台：
+
+Task task1 = Task.Factory.StartNew (() => { throw null; });
+Task task2 = task1.ContinueWith (ant => Console.Write (ant.Exception));
+
+一个安全的模式是再次抛出前置任务的异常。既然有等待任务，就让等待着来处理。
+
+Task continuation = Task.Factory.StartNew     (()  => { throw null; })
+                                .ContinueWith (ant =>
+  {
+    if (ant.Exception != null) throw ant.Exception;    // Continue processing...
+  });
+ 
+continuation.Wait();    // Exception is now thrown back to caller.
+
+处理异常的另一个方法根据是否有异常产出，确定不同的后续任务。可以用TaskContinuationOptions实现。
+
+Task task1 = Task.Factory.StartNew (() => { throw null; });
+ 
+Task error = task1.ContinueWith (ant => Console.Write (ant.Exception),
+                                 TaskContinuationOptions.OnlyOnFaulted);
+ 
+Task ok = task1.ContinueWith (ant => Console.Write ("Success!"),
+                              TaskContinuationOptions.NotOnFaulted);
+
+这个模式在连接子任务非常有用。
+
+下面的扩展方法会吞掉任务的未处理异常。
+
+public static void IgnoreExceptions (this Task task)
+{
+  task.ContinueWith (t => { var ignore = t.Exception; },
+    TaskContinuationOptions.OnlyOnFaulted);
+} 
+
+### Continuations and child tasks
+
+任务继续的另一个强大的功能是当所有子任务完成后再执行。此时子任务抛出的异常会整理到后续任务。
+
+在下面的例子里，我们开始三个子任务，每一个都跑出了NullReferenceException。所有异常都会被一次抓取到，通过一个后续任务。
+
+TaskCreationOptions atp = TaskCreationOptions.AttachedToParent;
+Task.Factory.StartNew (() =>
+{
+  Task.Factory.StartNew (() => { throw null; }, atp);
+  Task.Factory.StartNew (() => { throw null; }, atp);
+  Task.Factory.StartNew (() => { throw null; }, atp);
+})
+.ContinueWith (p => Console.WriteLine (p.Exception),
+                    TaskContinuationOptions.OnlyOnFaulted);
+
+
+
 
 
 
