@@ -361,7 +361,7 @@ class ThreadNaming
 }
 {%endhighlight%}
 
-# 前台线程和后台线程
+## 前台线程和后台线程
 默认创建的线程是前台线程。只要有正在运行的前台线程，程序就一直活着。后台线程则不然。
 当所有的前台线程执行完，程序就会结束，所有运行中的后台进程都会意外中止。
 
@@ -390,7 +390,7 @@ class PriorityTest
 不管用那种方法，最好设置上超时时间，抛弃那些无法完成的线程，这样可以保证最终程序可以被关闭。
 前台线程不需要这样的处理，但是最好针对无法结束的情况做处理。有时候程序不能退出的原因就是前台线程一直在运行没有结束。
 
-# 线程优先级
+## 线程优先级
 
 线程的优先级决定了操作系统分配给他的执行时间。
 优先级的枚举：
@@ -400,7 +400,7 @@ enum ThreadPriority { Lowest, BelowNormal, Normal, AboveNormal, Highest }
 优先级只有在多线程并行的情况下有意义。
 提高线程的优先级，并不能让线程一直工作，因为他还受到进程优先级的约束。略去一千个字。。。
 
-# 处理异常
+## 处理异常
 
 创建线程时使用 **try/catch/finally** ，不会捕捉到线程执行中的异常。
 {%highlight cSharp %}
@@ -420,8 +420,10 @@ public static void Main()
 
 static void Go() { throw null; }   // Throws a NullReferenceException
 {%endhighlight%}
+
 **try/catch** 部分不起作用，新创建的线程被 **NullReferenceException** 连累。
 正确的做法是将错误处理移到Go方法里
+
 {%highlight cSharp %}
 public static void Main()
 {
@@ -453,7 +455,7 @@ static void Go()
 
 # 线程池
 
-当开始一个新的线程，几千微秒被用来阻止新的私有变量栈。每个线程大概需要1M内存。
+当开始一个新的线程，几千微秒被用来组织新的私有变量栈。每个线程大概需要1M内存。
 线程池 Thread Pool 通过共享和循环利用线程来降低开销，这使得多线程高可靠并且没有性能损失。
 这在多处理器的电脑上使用分而治之的方法做并行运算时，非常有效果。
 
@@ -517,11 +519,11 @@ static string DownloadString (string uri)
 
 TPL是个好东西，特别适合多核心处理器，后续还有介绍。
 
-# 不通过TPL来实现线程池
+## 不通过TPL来实现线程池
 
 如果使用的是低版本的.NET Framework，就没法用TPL啦。那就要用两个老东西来实现进程池：ThreadPool.QueueUserWorkItem 和 asynchronous delegates。二者的区别就是后者会有返回值，并且未处理的异常会同步返回给调用者。
 
-## QueueUserWorkItem
+### QueueUserWorkItem
 
 使用 **QueueUserWorkItem**，简单的通过传入一个代理就可以：
 {%highlight cSharp %}
@@ -546,7 +548,7 @@ Hello from the thread pool! 123
 ```
 目标函数Go必须有个object参数。和ParameterizedThreadStart那样，可以传参数进去。但是使用QueueUserWorkItem不会有返回对象来帮助查看执行状态，而且未处理的异常也会导致程序退出。
 
-## Asynchronous delegates
+### Asynchronous delegates
 QueueUserWorkItem没有提供一个获取线程返回值的机制，异步代理可以双向传入传出多个参数，并且未处理异常也不会返回给原线程（更准确的说，叫EndInvoke线程）。
 
 使用的方法如下：
@@ -599,7 +601,8 @@ static void Done (IAsyncResult cookie)
 
 BeginInvoke 最后一个参数是用户定义值，可以通过IAsyncResult.AsyncState 属性获取到。这里传入的就是代理方法本身，所以可以再调用**EndInvoke**。
 
-# 线程池优化
+## 线程池优化
+
 线程池开始时就有一个线程。当有任务分配进来时，线程池管理器就插入新的线程，直到最大限制值。在一段非活动期后，线程管理器会销毁一部分线程，来达到更高的效率。
 
 可以用**ThreadPool.SetMaxThreads**属性，设置线程池的最大线程数，默认值如下：
