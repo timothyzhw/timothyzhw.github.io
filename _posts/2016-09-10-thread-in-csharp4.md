@@ -632,6 +632,353 @@ Task.Factory.StartNew (() =>
 
 
 
+# 优化PLINQ
+## 输出的优化
+
+PLINQ的优点之一就是可以方便地从并行工作中收集结果到一个单一的输出序列。如果仅仅是在序列的每个元素上执行一些函数:
+foreach (int n in parallelQuery)
+  DoSomething (n);
+
+这种情况下不关心执行顺序，可以使用ForAll方法来提高效率。
+
+ForAll方法在ParallenQuery的每个输出元素上执行一个代理。它直接钩在PLINQ内部，绕过了收集和列举结果的步骤
+
+"abcdef".AsParallel().Select (c => char.ToUpper(c)).ForAll (Console.Write);
+
+![forall](/img/post/9-10-theadprogram/ForAll.png)
+
+收集和枚举结果不是非常复杂的操作，所以ForAll优化的结果最好的是那些数据量大并要求快速执行的输入。
+
+## 输入端优化
+
+PLINQ有三个讲输入元素分配到线程的划分策略：
+Strategy 	Element allocation 	Relative performance
+Chunk partitioning 	Dynamic 	Average
+Range partitioning 	Static 	Poor to excellent
+Hash partitioning 	Static 	Poor
+
+对于那些需要比较元素的查询操作（GroupBy，Join，GroupJoin，Intersect，Except，Union，Distinct），没有选择只能使用 Hash划分。
+Hash 划分相对低效因为要预先计算每个元素的hashcode，河阳有个hashcode标识的元素可以在同一线程上运行。如果发现执行太慢，可以调用AsSequential来取消并行。
+
+对于其他的查询操作，需要选择是使用range还是chunck策略。默认上：
+
+* 如果输入的序列是可索引的（数组或者IList<T>）,PLINQ选择的是range划分
+* 否则是chunk划分
+
+简单的说，range划分对于那些长的序列，序列中的元素执行花费的CPU时间差不多，那相对执行较快。否则chunk执行的快一点。
+
+强制使用range划分
+
+* 如果一个输入一Enumerable.Range开始，那么要使用ParallelEnumerable.Range代替。
+* 另外可以在输入序列上简单调用ToList或ToArray（当然这个操作会引发性能的损失需要考虑到）
+
+要强制使用chunk划分，序列使用Partitioner.Create做一下包装：
+
+int[] numbers = { 3, 4, 5, 6, 7, 8, 9 };
+var parallelQuery =
+  Partitioner.Create (numbers, true).AsParallel()
+  .Where (...)
+
+Partitioner.Create的第二个参数指明希望是一个负载均衡的查询，也就是说要用chunk划分。
+
+chunk划分的工作是让每个工作的线程定期的从输入元素里获取一小段元素来执行。PLINQ开始先划分成非常小的块（一次一个或两个元素），然后在查询执行过程中不断增加块的大小：
+这保证小的序列可以高效并行，而大的序列又不会过多的来来回回。如果一个线程碰巧获取的一个简单元素（执行很快），那会接着获取更多的块。系统保证么个线程执行同等的工作。
+唯一的缺点是才从共享的的输入序列中取元素时要同步（一般是排他锁），这需要额外的花费和内容。
+
+![part](/img/post/9-10-theadprogram/Partitioning.png)
+
+# 并发集合 Concurrent Collections
+
+Framework4.0 提供了一套新的集合在System.Collections.Concurrent 命名空间下。所有的这些都是完完全全线程安全的：
+
+Concurrent collection 	Nonconcurrent equivalent
+ConcurrentStack<T> 	Stack<T>
+ConcurrentQueue<T> 	Queue<T>
+ConcurrentBag<T> 	(none)
+BlockingCollection<T> 	(none)
+ConcurrentDictionary<TKey,TValue> 	Dictionary<TKey,TValue>
+
+并发集合通常在需要线程安全的场合。然后有几个注意事项：
+* 并发集合是用来给并行程序。除了并发的情况，其他条件下，传统的集合表现的更好。
+* 线程安全的集合，不能保证使用代码的是线程安全的。
+* 如果一个线程读，另一个线程修改，那么不会有异常，但是读到的是新旧都有的。
+* 没有并发版本的List<T>
+* 并发的栈、队列和包内部都是链表。这使得先对于非并发的Stack和Queue类的内存效率要低，但是对并发获取更好，因为链表实现可以不用锁或者少量锁。（链表插入只需要更新两个引用）
+
+也就是说，并发集合不是在一般集合上加个锁。为了说明这点，可以在一个线程上执行下面的代码
+
+ar d = new ConcurrentDictionary<int,int>();
+for (int i = 0; i < 1000000; i++) d[i] = 123;
+
+这段代码要比后面这段慢3倍
+
+var d = new Dictionary<int,int>();
+for (int i = 0; i < 1000000; i++) lock (d) d[i] = 123;
+
+（读起来快是因为读的时候不加锁）
+
+并发集合与一般的集合使用上也不一样，如果想要执行一些特殊的方法实现原子的尝试执行，如TryPop。大部分的方法没有在ProducerConsumerCollection<T>接口上实现。
+
+## ProducerConsumerCollection<T>
+
+一个生产/消费的集合主要有两个主要作用：
+* 增加一个元素（生产）
+* 获取一个元素并移除（消费）
+
+经典的示例就是栈和队列。生产者/消费者集合在并行编程中意义重大，因为这将有益于高效的无锁的实现。
+
+ProducerConsumerCollection<T>接口代表了一个线程安全的 生产者/消费者 集合。下面的类实现了这个接口：
+
+ConcurrentStack<T>
+ConcurrentQueue<T>
+ConcurrentBag<T>
+
+IProducerConsumerCollection<T> 继承自 ICollection，并增加了一下方法：
+
+void CopyTo (T[] array, int index);
+T[] ToArray();
+bool TryAdd (T item);
+bool TryTake (out T item);
+
+TryAdd和TryTake方法检查是否可以执行增/删操作，如果可以就马上执行。检查和执行是原子的，去除了在一般集合范围内加锁的要求。
+int result;
+lock (myStack) if (myStack.Count > 0) result = myStack.Pop();
+
+TryTake返回false，如果集合是空，TryAdd总是成功返回true。如果写自己的的同步集合不允许重复，那么久要让TryAdd返回false，当检查到有重复的元素
+
+TryTake拿出来的元素在各个子类中定义：
+* 对于栈，TryTake移除最近增加的元素，
+* 对于队列，TryTake移除最先增加的元素，
+* 对于包，TryTake移除随意一个元素。
+
+三个同步类明确实现了TryTake和TryAdd，并且更通常意义的刚发TryDequeue和TryPop。
+
+#ConcurrentBag<T>
+
+ConcurrentBag<T>存储了一个没有排序的对象集合（可以重复）。ConcurrentBag<T>适合不在意Take或TryTake的是哪个元素。
+
+ConcurrentBag<T>的优点是在多个线程同时调用Add方法时，并不会受到竞争。相反在队列和栈上的Add有竞争（虽然比非同步集合上的包围lock要少）。
+同样取也是非常高效的，前提是每个线程不要取得比加入的多。
+
+在同步包内部，每个线程有各自私有的链接。线程上调用Add加入元素到各自私有的列表上，减少了竞争。当枚举包的时候，枚举器会跨越每个线程的私有列表，依次返回元素。
+
+当调用Take，包首先查看当前线程的私有列表，如果有元素，那就直接拿过出去，基本没有竞争。如果列表空着，就要从别的线程里拿一个元素，就会有竞争。
+
+因此，包的Take返回的是本线程最近加入的元素，或者随意另一个线程最新加入的元素。
+
+同步包适用于那些并行操作大部分是Add元素，或者Add和Take在一个线程上均衡的情况。前面的一个例子就是，当使用Parallel.ForEach实现一个检查器时：
+
+var misspellings = new ConcurrentBag<Tuple<int,string>>();
+ 
+Parallel.ForEach (wordsToTest, (word, state, i) =>
+{
+  if (!wordLookup.Contains (word))
+    misspellings.Add (Tuple.Create ((int) i, word));
+});
+
+对于一个生产/消费的队列，同步包是个poor choice，因为元素加入和删除在不同的线程上。
+
+# BlockingCollection<T>
+
+如果在上面的生产/消费集合上调用TryTake，并且集合是空的，返回值是false。有的场景下等待一个可用的元素也是很有用的。
+
+除了重写TryTake，PFX把这个设计封装到一个包装类BlockingCollection<T>。一个阻塞集合可以包装在任意实现IProducerConsumerCollection<T>接口的集合，并且可以从被包装的集合取袁术，如果没有的话就阻塞，直到
+
+一个阻塞的集合可以限制集合的大小，如果超出大小就让生产者阻塞。有这种限制的集合称为边界阻塞集合(bounded blocking collection)。
+
+要使用BlockingCollection<T>：
+
+1. 实例化类，可以指定要包装的IProducerConsumerCollection<T>和集合的最大值。
+2. 调用Add或TryAdd加入到下层的集合
+3. 调用Take或TryTake来使用消费元素
+
+如果在构造函数没有传入一个集合，会自动初始化一个ConcurrentQueue<T>。生产和消费方法可以指定一个取消标识和超时时间。Add和TryAdd在集合边界大小会阻塞；Take和TryTake集合在集合空 的时候会阻塞。
+
+另一个消费元素的方法是GetConsumingEnumerable。这个方法会无限得返回生产的元素。可以强制停止顺序通过调用CompleteAdding，同样也阻止更多元素加入。
+
+前面已经写了一个生产\消费队列的例子，用的是[wait and pulse](http://)。 现在使用BlockingCollection<T>来重构这个类：
+
+public class PCQueue : IDisposable
+{
+  BlockingCollection<Action> _taskQ = new BlockingCollection<Action>(); 
+  public PCQueue (int workerCount)
+  {
+    // Create and start a separate Task for each consumer:
+    for (int i = 0; i < workerCount; i++)
+      Task.Factory.StartNew (Consume);
+  }
+ 
+  public void Dispose() { _taskQ.CompleteAdding(); }
+ 
+  public void EnqueueTask (Action action) { _taskQ.Add (action); }
+ 
+  void Consume()
+  {
+    // This sequence that we’re enumerating will block when no elements
+    // are available and will end when CompleteAdding is called. 
+    foreach (Action action in _taskQ.GetConsumingEnumerable())
+      action();     // Perform task.
+  }
+}
+
+由于没有传入任何参数到BlockingCollection的构造函数，它会自动实例化一个同步队列。如果传入的是ConcurrentStack，那就要在最后停止一个栈。
+
+BlockingCollection同时提供了静态方法叫AddToAny和TakeFromAny，这允许增加获取一个元素当指定几个阻塞序列。这个动作会在第一个可以服务请求的集合上执行。
+
+#TaskCompletionSource的优势
+
+上面写的生产/消费程序僵硬，因为不能跟踪入队的工作项。如果能够的话就好了：
+
+* 知道工作项已经结束
+* 取消一个未开始的工作项
+* 优雅的处理工作项抛出的异常
+
+一个理想的方案是让EnqueueTask返回一些对象来实现上面说的功能。好消息是已经有这么个类啦——Task类。需要做的是劫持task的控制权通过TaskCompletionSource：
+
+public class PCQueue : IDisposable
+{
+  class WorkItem
+  {
+    public readonly TaskCompletionSource<object> TaskSource;
+    public readonly Action Action;
+    public readonly CancellationToken? CancelToken;
+ 
+    public WorkItem (
+      TaskCompletionSource<object> taskSource,
+      Action action,
+      CancellationToken? cancelToken)
+    {
+      TaskSource = taskSource;
+      Action = action;
+      CancelToken = cancelToken;
+    }
+  }
+ 
+  BlockingCollection<WorkItem> _taskQ = new BlockingCollection<WorkItem>();
+ 
+  public PCQueue (int workerCount)
+  {
+    // Create and start a separate Task for each consumer:
+    for (int i = 0; i < workerCount; i++)
+      Task.Factory.StartNew (Consume);
+  }
+ 
+  public void Dispose() { _taskQ.CompleteAdding(); }
+ 
+  public Task EnqueueTask (Action action) 
+  {
+    return EnqueueTask (action, null);
+  }
+ 
+  public Task EnqueueTask (Action action, CancellationToken? cancelToken)
+  {
+    var tcs = new TaskCompletionSource<object>();
+    _taskQ.Add (new WorkItem (tcs, action, cancelToken));
+    return tcs.Task;
+  }
+ 
+  void Consume()
+  {
+    foreach (WorkItem workItem in _taskQ.GetConsumingEnumerable())
+      if (workItem.CancelToken.HasValue && 
+          workItem.CancelToken.Value.IsCancellationRequested)
+      {
+        workItem.TaskSource.SetCanceled();
+      }
+      else
+        try
+        {
+          workItem.Action();
+          workItem.TaskSource.SetResult (null);   // Indicate completion
+        }
+        catch (OperationCanceledException ex)
+        {
+          if (ex.CancellationToken == workItem.CancelToken)
+            workItem.TaskSource.SetCanceled();
+          else
+            workItem.TaskSource.SetException (ex);
+        }
+        catch (Exception ex)
+        {
+          workItem.TaskSource.SetException (ex);
+        }
+  }
+}
+
+在EnqueueTask里，入队的工作项封装了目标代理和一个任务完成源，这个源让我们后面可以控制给消费者的任务。
+
+在Consume函数里，首先检查任务是否在出队时被取消。如果没有取消，就运行代理并调用SetResult在类完成源来只是工作项完成。
+
+下面是如何使用这个类：
+
+var pcQ = new PCQueue (1);
+Task task = pcQ.EnqueueTask (() => Console.WriteLine ("Easy!"));
+...
+
+现在可以等待任务，执行后续操作、在父任务上继续传播异常等等。一句话，在执行我们自己的调度器时，得到了一个更丰富的任务模型。
+
+# SpinLock and SpinWait
+
+在并行编程里，一个简单的spinning通常要比blocking更好，因为避免了上下文的切换和内核转换。SpinLock and SpinWait就是来干这个的。
+通常是用来写定制化的同步构造函数。
+
+>>> 注意： SpinLock and SpinWait 是结构，不是类！这样设计是醉倒程度的优化，来避免间接引用？？和垃圾回收。当然这就意味着必须小心不要进行无疑义的拷贝——
+方法之间传递的时候没有ref修饰，定义为readonly字段。这在用SpinLock尤其要注意。
+
+## SpinLock
+
+SpinLock结构体可以加锁但不会有上下文切换的开销，花费在保持一个线程轮询（无疑义的忙）。这个方法可以用在高竞争的场景，当加锁的操作很简单。
+
+>>> 如果使用spinlock竞争时间很长（微秒级），那他会产生时间切片，导致上下文切换，就像常规锁。当重新调度后，它会重新产生-在一个不断的 spin yileding。
+这样的消费CPU资源比彻底的spinning要少，但是比blocking要多。
+
+使用SpinLock和使用平常锁一样，除了以下注意点：
+
+* Spinlock自旋锁是结构体
+* 自旋锁不能再次进入，就是说不能一个线程的一行上对同一个SpinLock抵用两次Enter。如果违反这个规则，会引发一个异常或死锁。可以在初始化的时候设置是否启用owner tracking。这会有性能损失。
+* SpinLock可以查询锁是否使用，通过IsHeld属性，如果owner tracking启用了，那查看IsHeldByCurrentThread属性。
+* 没有SpinLock语法糖和C#的lock
+
+另一个不同是当调用Enter，必须遵循一个[lockTaken参数的强壮模式]() （就是总是在一个try/finally块里工作）
+
+一个例子：
+
+var spinLock = new SpinLock (true);   // Enable owner tracking
+bool lockTaken = false;
+try
+{
+  spinLock.Enter (ref lockTaken);
+  // Do stuff...
+}
+finally
+{
+  if (lockTaken) spinLock.Exit();
+}
+
+在一般的锁，lockTaken会是false在调用Enter后而Enter方法跑出了一个异常，所以锁没有真的发生。这种情况非常罕见，使用这个变量可以让后续是否调用Exit更确定。
+
+SpinLock也提供了一个TryEnter方法可以接收一个超时参数。
+
+>>> 提供SpinLock没有得到语义的价值，并且缺少语法糖。几乎是每次使用都要收到折磨！仔细来决定是否要废除普通的锁。
+
+SpinLock意义在于写自己的可重用的同步构造方法。即使这样，自旋锁也不是听起来那样有用。通常更好的方法是花点时间来时做更投机的——使用SpinWait.
+
+# SpinWait
+
+SpinWait可以写出没有锁的代码使用spin代替阻塞。它工作在实现保护来防止资源接和优先级翻转这些有spin依法的危机。
+
+>>> Lock-free 编程用SpinWaite是和多线程一样的硬骨头，并且没有更高层的构造再来做这个事情。
+
+
+
+
+
+
+
+
+
+
+
 
 
 
