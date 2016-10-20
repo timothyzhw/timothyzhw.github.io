@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      "Threading in C# "
-subtitle:   "Part 1 getting started"
+title:      "Threading in C#  Part 1"
+subtitle:   "Getting Started"
 date:       2016-07-13
 author:     "Joseph Albahari, Trans by Tim"
 header-img: "img/post-bg-2015.jpg"
@@ -173,8 +173,8 @@ Thread.Sleep是暂停当前线程一段时间。
 
 # 线程的工作原理
 
-多线程是由一个线程调度器进行管理。CLR的调度器是操作系统代理函数。
-线程调度器保证所有活动的线程分配合适的执行时间，并且在线程等待和阻塞不会占用CPU。
+多线程是由线程调度器进行管理。CLR的调度器是操作系统代理函数。
+线程调度器保证所有活动的线程分配合适的执行时间，并且线程等待和阻塞不会占用CPU。
 在多处理器的计算机上，不同的线程同时在不同CPU上运行，多线程就是混合时间切片，并做到可靠同步。
 
 # 线程和进程
@@ -196,7 +196,7 @@ Thread.Sleep是暂停当前线程一段时间。
 
 多线程在调度和切换时使用了额外的资源。多线程也不总是加快执行命令。
 
-# 创建和开始线程
+# 创建并启动线程
 
 前面已经提到，线程使类Thread类构造，传入参数 **ThreadStart** 定义了线程开始位置。
 
@@ -239,7 +239,9 @@ hello!
 {%highlight cSharp %}
 Thread t = new Thread (Go);    // No need to explicitly use ThreadStart
 {%endhighlight%}
+
 还有更更简单的，直接使用lambda表达式或匿名方法：
+
 {%highlight cSharp %}
 static void Main()
 {
@@ -247,9 +249,11 @@ static void Main()
   t.Start();
 }
 {%endhighlight%}
-# 给线程传入数据
 
-最简单的方法是使用lambda表达式，给调用的方法传入合适的参数：
+## 向线程中传入数据
+
+最简单的方法是使用lambda表达式，在lambda里调用的方法并传入合适的参数：
+
 {%highlight cSharp %}
 static void Main()
 {
@@ -262,7 +266,9 @@ static void Print (string message)
   Console.WriteLine (message);
 }
 {%endhighlight%}
+
 也可以在Start的时候传入参数：
+
 {%highlight cSharp %}
 static void Main()
 {
@@ -276,7 +282,9 @@ static void Print (object messageObj)
   Console.WriteLine (message);
 }
 {%endhighlight%}
+
 因为线程Thread的构造函数可以接收下面的任一个代理
+
 {%highlight cSharp %}
 public delegate void ThreadStart();
 public delegate void ParameterizedThreadStart (object obj);
@@ -298,6 +306,7 @@ for (int i = 0; i < 10; i++)
 
 问题出在变量 **i** 在循环中指向同一处内存。因此每个线程打印出来的值是变化的。
 解决方法是使用一个临时变量
+
 {%highlight cSharp %}
 for (int i = 0; i < 10; i++)
 {
@@ -305,8 +314,10 @@ for (int i = 0; i < 10; i++)
   new Thread (() => Console.Write (temp)).Start();
 }
 {%endhighlight%}
+
 变量temp是每个循环内的局部变量，每个线程捕获到的是不同内存的变量。
 用更浅显的例子说明一下：
+
 {%highlight cSharp %}
 string text = "t1";
 Thread t1 = new Thread ( () => Console.WriteLine (text) );
@@ -317,6 +328,7 @@ Thread t2 = new Thread ( () => Console.WriteLine (text) );
 t1.Start();
 t2.Start();
 {%endhighlight%}
+
 由于lambda表达式捕获的是同样的text变量，所以"t2" 打印了两次
 
 ``` console
@@ -324,11 +336,12 @@ t2
 t2
 ```
 
-# 线程命名
+## 线程命名
 每个线程有个 **Name** 属性，可以用来调试。在Visual Studio中调试时可以显示出来线程名字。
 Name属性只能设置一次，如果想再次修改会抛出异常。
 
 静态的 **Thread.CurrentThread** 属性可以获得当前执行的线程：
+
 {%highlight cSharp %}
 class ThreadNaming
 {
@@ -347,6 +360,7 @@ class ThreadNaming
   }
 }
 {%endhighlight%}
+
 # 前台线程和后台线程
 默认创建的线程是前台线程。只要有正在运行的前台线程，程序就一直活着。后台线程则不然。
 当所有的前台线程执行完，程序就会结束，所有运行中的后台进程都会意外中止。
