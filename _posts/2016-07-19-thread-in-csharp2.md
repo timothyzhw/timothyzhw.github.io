@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "Threading in C# "
+title:      "Threading in C# Part 2"
 subtitle:   "PART 2: BASIC SYNCHRONIZATION"
 date:       2016-07-13
 author:     "Joseph Albahari, Trans by Tim"
@@ -47,9 +47,13 @@ Suspend方法挂起的线程，不认为是阻塞的线程。（Suspend 方法�
 ## 阻塞 Vs 轮询
 
 有些情况要求线程暂停，待满足一定条件后才能执行。标志位和锁都可以实现线程阻塞，也可以不停的循环执行，直到条件满足。如：
+
+{%highlight cSharp %}
 while (!proceed);
 
 while (DateTime.Now < nextStartTime);
+
+{%endhighlight%}
 
 一般来说，这会造成处理器的巨大浪费。CLR和操作系统认为线程在执行非常重要的计算，会分配相应的资源。
 
@@ -59,18 +63,23 @@ while (!proceed) Thread.Sleep (10);
 
 虽然不优雅，但是比一直循环要有效的多。当然在判断proceed的状态时，会有一致性的问题，正确的使用locking和signaling可以避免。
 
+>>>  自旋锁可以很高效，当条件在非常短的时间内就可以满足（大约是几微秒），因为这样可以避免上文切换的消耗。.NET Framework 提供了特定的方法和类来协助，参照第四章
+
 ## 线程状态
 
 可以通过 ThreadState 属性来查询线程的执行状态，返回值是ThreadState的枚举。这个值是按位存储的三‘层’。当然大部分状态是冗余无用重复的：
 ![state](/img/post/7-19-threading/state.png)
 
 ThreadState 常用的四个状态值 Unstarted, Running, WaitSleepJoin, Stopped 。下面代码判断是否处于这四个状态：
+
+{%highlight cSharp %}
 public static ThreadState SimpleThreadState (ThreadState ts)
 {
   return ts & (ThreadState.Unstarted |
                ThreadState.WaitSleepJoin |
                ThreadState.Stopped);
 }
+{%endhighlight%}
 
 ThreadState属性用于诊断，不适用状态同步处理，因为判断状态后，再根据状态执行时，状态可以就已经变化了。
 
@@ -78,8 +87,7 @@ ThreadState属性用于诊断，不适用状态同步处理，因为判断状态
 
 排它锁可以保证一个时间内只有一个线程在运行某段代码。.Net 里有两个实现方式 lock 和 Mutex。lock 快捷易用，Mutex可以跨越程序在计算机进程间加锁。
 
-### lock
-
+{%highlight cSharp %}
 class ThreadUnsafe
 {
   static int _val1 = 1, _val2 = 1;
@@ -90,6 +98,7 @@ class ThreadUnsafe
     _val2 = 0;
   }
 }
+{%endhighlight%}
 
 这个类不是线程安全的：如果Go被两个线程同时调用，就可能会抛出除以 0 的异常，条件判断为真后，_val2被修改。
 
@@ -174,7 +183,7 @@ same thread (assuming no blocking), as measured on an Intel Core i7 860. </p>
 
 </div>
 
-## Monitor.Enter and Monitor.Exit
+### Monitor.Enter and Monitor.Exit
 
 C#的lock 状态实际是一个语法糖，实际上是使用try/finally来调用Monitor.Enter 和 Monitor.Exit 。下面代码是简化版的 Go 方法的内部实现：
 
@@ -188,7 +197,7 @@ finally { Monitor.Exit (_locker); }
 
 如果在Monitor.Exit前没有对同一对象调用Monitor.Enter就会抛出异常。
 
-## Monitor.Enter 的 lockTaken 重载
+### Monitor.Enter 的 lockTaken 重载
 
 上面的代码是C# 1.0-3.0时，编译器在处理lock语句的转换。
 但是上面代码有个很隐晦的缺陷，假设在Monitor.Enter 的实现中，或者在Monitor.Enter和try之间有异常。（线程被意外终止或内存溢出）。如果这时候锁已经拿到，那就不会释放，因为没有机会进入try/finally。锁就被泄露了。
@@ -208,7 +217,7 @@ try
 }
 finally { if (lockTaken) Monitor.Exit (_locker); }
 
-## TryEnter
+### TryEnter
 
 Monitor 提供了一个TryEnter 方法，允许设置一个超时时间。如果方法获取锁，返回为true，如果因为超时没有获得锁，那返回false。TryEnter可以不输入参数，可以测试锁，如果不能马上获得锁就立刻超时。
 
@@ -240,7 +249,27 @@ lock (typeof (Widget)) { ... }    // For protecting access to statics
 
 ## lock的时机
 
-基本原则就是需要在操作“共享写字段”的周围加锁。即使是最简单的赋值也要考虑到同步。下面的例子里，Increment nor the Assign
+基本原则就是需要在操作“共享写字段”的周围加锁。即使是最简单的赋值也要考虑到同步。下面的例子里，Increment 和 Assign 都是不是线程安全的：
+
+class ThreadUnsafe
+{
+  static int _x;
+  static void Increment() { _x++; }
+  static void Assign()    { _x = 123; }
+}
+
+线程安全的版本应该是：
+
+class ThreadSafe
+{
+  static readonly object _locker = new object();
+  static int _x;
+ 
+  static void Increment() { lock (_locker) _x++; }
+  static void Assign()    { lock (_locker) _x = 123; }
+}
+
+后面会解释为什么这么写。
 
 
 
