@@ -15,7 +15,7 @@ tags:
 
 grpc 是个跨平台的远程调用框架，第一次在windows平台使用，有很多问题需要面对，下面做个汇总，以备检查
 
-![跨平台](/img/post/10-24-grpcstart/bk.png/cross.png)
+![跨平台](/img/post/10-24-grpcstart/cross.png)
 
 # 消息长度设置
 
@@ -37,6 +37,7 @@ grpc 是个跨平台的远程调用框架，第一次在windows平台使用，�
 ```
 
 在服务端出现异常
+
 ``` console
 W1024 09:50:02.749888 Grpc.Core.Server Exception while handling RPC. System.InvalidOperationException: Error sending status from server.
    在 System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
@@ -65,6 +66,7 @@ W1024 09:50:02.749888 Grpc.Core.Server Exception while handling RPC. System.Inva
    在 GreeterClient.Program.Main(String[] args) 位置 E:\MyTest\grpc-1.0.x\examples\csharp\helloworld\GreeterClient\Program.cs:行号 71
 ```
 在服务端出现异常 
+
 ``` console
 W1024 09:56:49.886636 Grpc.Core.Internal.UnaryServerCallHandler`2 Exception occured in handler. System.ArgumentException: 值不在预期的范围内。
    在 Grpc.Core.Internal.UnaryServerCallHandler`2.<HandleCall>d__0.MoveNext()
@@ -78,6 +80,7 @@ W1024 09:56:49.889643 Grpc.Core.Server Exception while handling RPC. System.Inva
    在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
    在 Grpc.Core.Server.<HandleCallAsync>d__11.MoveNext()
 ```
+
 ## 解决方法
 
 出现这个问题是grpc对默认的消息大小(massage size)做了限制，限制的值在各个版本中还不太一样，为了让grpc的效率更高，开发者认为应该不要太大，4M比较合适。
