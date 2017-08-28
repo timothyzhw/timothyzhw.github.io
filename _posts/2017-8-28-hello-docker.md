@@ -1,10 +1,23 @@
+---
+layout:     post
+title:      "Docker 实战"
+subtitle:   ""
+date:       2017-08-28
+author:     "Tim zhong"
+header-img: "/img/post/17-01-16-elastic/bk.svg"
+catalog: true
+tags:
+    - docker
+    - linux
+---
+
 # Dockerfile
 
 Dockerfile定义了容器内的环境配置，如网络端口映射和虚拟磁盘等。
 
 示例：
 
-```
+```bash
 # Use an official Python runtime as a parent image
 FROM python:2.7-slim
 
