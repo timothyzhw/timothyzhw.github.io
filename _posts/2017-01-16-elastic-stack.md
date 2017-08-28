@@ -138,6 +138,7 @@ PUT _ingest/pipeline/app-pipeline
     {
       "grok": {
         "field": "message",
+         "ignore_failure" : false,
         "patterns": ["\\[%{LOGLEVEL:level}\\] %{VATIME:date} %{USER:modul}\\.%{VATHREAD:thread}: %{VAINFO:info}"],
         "pattern_definitions":{
             "VATIME" : "\\d\\d\\.\\d\\d-\\d\\d:\\d\\d:\\d\\d.\\d*",
@@ -146,7 +147,14 @@ PUT _ingest/pipeline/app-pipeline
         }
       }
     }
-  ]
+  ],
+    "on_failure" : [
+    {
+      "set" : {
+        "field" : "_index",
+        "value" : "failed-applog"
+      }
+    }]
 }
 
  PUT _ingest/pipeline/iis-pipeline
@@ -158,12 +166,66 @@ PUT _ingest/pipeline/app-pipeline
           "field": "message",
           "ignore_failure" : true,
           "patterns": [
-            "%{TIMESTAMP_ISO8601:log_timestamp} %{IPORHOST:site} %{WORD:method} %{NOTSPACE:page} %{NOTSPACE:querystring} %{NUMBER:port} %{NOTSPACE:username} %{IPORHOST:clienthost} %{NOTSPACE:useragent} %{NOTSPACE:referer} %{NUMBER:response} %{NUMBER:subresponse} %{NUMBER:scstatus} %{NUMBER:time_taken}"
+            "%{TIMESTAMP_ISO8601:log_timestamp} %{IPORHOST:site} %{WORD:method} %{NOTSPACE:page} %{NOTSPACE:querystring} %{NUMBER:port} %{NOTSPACE:username} %{IPORHOST:clienthost} %{NOTSPACE:useragent} %{NOTSPACE:referer} %{NOTSPACE:host} %{NUMBER:response} %{NUMBER:subresponse} %{NUMBER:scstatus} %{NUMBER:time_taken}"
           ]
         }
       }
-    ]
+    ],
+    "on_failure" : [
+    {
+      "set" : {
+        "field" : "_index",
+        "value" : "failed-iislog"
+      }
+    }]
   }
+
+ PUT _ingest/pipeline/statistics-pipeline
+ {
+    "description": "parse json and convert date to @timestamp",
+  "processors":[
+      {
+        "json": {
+          "field": "message",
+          "add_to_root": true
+        }
+      },
+      {
+        "remove": {
+          "field": "message"
+        }
+      },
+      {
+        "date": {
+          "field": "Date",
+          "formats": [
+            "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+          ],
+          "target_field": "@timestamp"
+        }
+      },
+      {
+        "remove": {
+          "field": "Date"
+        }
+      },
+      {
+        "date_index_name": {
+          "field": "@timestamp",
+          "index_name_prefix": "statistics-",
+          "date_rounding": "d"
+        }
+      }
+    ],
+     "on_failure" : [
+    {
+      "set" : {
+        "field" : "_index",
+        "value" : "failed-statistics"
+      }
+    }]
+  }
+
 POST _ingest/pipeline/iis-pipeline/_simulate
 {
   "docs" : [
