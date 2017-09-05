@@ -130,3 +130,81 @@ networks:
   webnet:
 
 ```
+
+```bash
+docker stack ls              # List all running applications on this Docker host
+docker stack deploy -c <composefile> <appname>  # Run the specified Compose file
+docker stack services <appname>       # List the services associated with an app
+docker stack ps <appname>   # List the running containers associated with an app
+docker stack rm <appname>                             # Tear down an application
+```
+
+# 网络
+
+Docker通过网络驱动器来支持容器的网络。默认提供两个网络驱动： ___bridge___ 和 ___overlay___  。 
+
+安装docker后自动带了三个网络
+
+```
+$ docker network ls
+
+NETWORK ID          NAME                DRIVER
+18a2866682b8        none                null
+c288470c46f6        host                host
+7b369448dccb        bridge              bridge
+```
+
+默认的容器是在bridge网络下。
+
+![Bridge网络](/img/post/18-08-28-docker/bridge1.png)
+
+可以使用命令来查看容器的ip地址
+
+```
+$ docker network inspect bridge
+```
+
+同样可以使用命令将容器从网络移除
+
+```
+$ docker network disconnect bridge networktest
+```
+
+## 创建自己的bridge网络
+
+```
+$ docker network create -d bridge my_bridge
+```
+
+参数-d表示使用bridge驱动。
+
+使用ls查看新建的网络，使用inspect检查网络，没有容易在该网络下。
+
+通过定义网络可以隔离出独立的容器环境。在建立容器时，使用 --net=my_bridge 参数来指定容器的网络。
+```
+$ docker run -d --net=my_bridge --name db training/postgres
+
+$ docker run -d --name web training/webapp python app.py
+```
+在my_bridge网络下建立db，在默认网络下建立web
+
+![图片](/img/post/18-08-28-docker/bridge2.png)
+
+打开容器db的shell，运行ping命令，ping不通web
+
+```
+$ docker exec -it db bash
+
+$ exit
+```
+
+但是docker允许在容器上附加多个网络。下面就将my_bridge附加到web容器上，这时候web和db都处于一个网络中了。
+
+```
+$ docker network connect my_bridge web
+```
+
+![图片](/img/post/18-08-28-docker/bridge3.png)
+
+
+docker inspect --format='{{json .NetworkSettings.Networks}}'  web
