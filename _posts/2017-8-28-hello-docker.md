@@ -208,3 +208,75 @@ $ docker network connect my_bridge web
 
 
 docker inspect --format='{{json .NetworkSettings.Networks}}'  web
+
+# Docker数据管理
+
+直接在docker内部存取数据，有很多缺点。Docker提供了三种方式让容器可以直接挂载宿主机的volumes，bind mounts 和 tmpfs volumes。一般使用volumes。
+
+## 选择合适的挂载方式
+
+无论哪种方式，在容器内使用时都是一样的（文件夹或者文件），主要区别是在宿主机的位置。下面的图可以很直观的看到三者的差异:
+
+![图片](/img/post/18-08-28-docker/types-of-mounts.png)
+
+* Volumes 在宿主机的文件系统中，由Docker来管理（/var/lib/docker/volumes/），其他进程不应该修改这部分文件。
+* Bind mounts 可以保存在宿主机的任意位置，所有进程都可以修改。
+* tmpfs mounts 保存在宿主机系统内存中，不会写回宿主机文件。
+
+## 更详细的说明
+
+* Volumes：由Docker来创建和管理。使用命令直接创建，或者在容器或服务启动时创建。
+```
+docker volume create
+```
+当创建一个volume时，实际是存储在宿主机的一个目录。当卷挂载到容器时，就是这个目录挂载上了。一个卷可以同时挂到多个容器。即使容器使用卷了，它也不会被自动移除。当然可以手工来用命令移除没有在使用的卷：
+```
+docker volume prune 
+```
+* Bind mounts：Docker最早支持的，相比较volumes有些功能上的限制。首先使用bind mounts需要使用宿主机的全路径。文件和文件夹可以由容器来创建。非常高效，但是依赖宿主机有特别的目录结构。如果是新的Docker应用，建议使用volumes。
+
+*tmpfs mounts：不持久化，和容器一起被销毁。
+
+在Docker17.06后，使用 --mount 来挂载。
+
+##使用volumes的最佳实践
+
+在Docker容器和服务中心，持久化数据优先选择volumes。
+*  在多个运行的容器中共享数据。
+* 宿主机的目录结构不能确定。
+* 使用远程主机或者云存储。
+* 需要做数据备份、迁移。
+
+ ## 使用bind mounts的最佳实践
+
+* 在宿主机和容器之间共享 ___配置___ 文件，如DNS文件。
+* 共享开发环境的源代码或编译结果。例如容器中挂载Maven的target目录，每次宿主机编译，容器都可以得到最新的工件。但是生产环境还是拷贝编译结果。
+* 宿主机的文件结构和容器要求的一致。
+
+## 使用tmpfs mounts的最佳实践
+
+* 不希望数据持久化。
+
+# 开始使用Volumes
+
+使用 -mount 参数来使用volumes
+
+## 创建和管理volumes
+
+```
+#创建卷
+docker volume create my-vol
+
+#显示卷列表
+docker volume ls
+
+#查看卷
+docker volume inspect my-vol
+
+#删除卷
+docker volumn rm my-vol
+```
+
+
+
+
